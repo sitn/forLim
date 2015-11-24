@@ -1028,7 +1028,6 @@ class forLim:
                     lastPath = simplifyHedges_path
                     
                     
-                    
                     ###################################
                     #  9. enregistrer fichier forest  #
                     ###################################
@@ -1038,7 +1037,7 @@ class forLim:
                     
                     
                     #Copy last path and delete FID and AREA columns
-                    runalg("qgis:deletecolumn", lastPath, "FID", forest_path + ".shp")
+                    runalg("qgis:deletecolumn", lastPath, "AREA", forest_path + ".shp")
                     
                     
                     #Add area field
