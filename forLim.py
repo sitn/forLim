@@ -30,7 +30,7 @@ from forLim_dialog import forLimDialog
 from datetime import datetime
 #import shutil
 from osgeo import ogr
-import treeDetectLmax
+import delaunayMethod
 import Overlap_fct
 import merge_fct
 from processing import runalg
@@ -564,7 +564,7 @@ class forLim:
                     #  0. Extraction des cimes        #
                     ###################################
                     
-                    #Get file list
+                    # Get file list
                     path_input = args["Path_input"]
                     files = args["Path_input"].split(";")
                     nfiles = len(files)
@@ -574,16 +574,16 @@ class forLim:
                     self.dlg.progressBar.setMinimum(1)
                     self.dlg.progressBar.setMaximum(nfiles+9)
                     
-                    #Print progress on user window
+                    # Print progress on user window
                     self.dlg.label_printActualProcess.setText("Processing tiles ...")
                     self.dlg.progressBar.setValue(1)
                     QApplication.processEvents()
                     
-                    #Create treetops directory
+                    # Create treetops directory
                     args["Path_output_treetops"] = os.path.join(args["Path_output"],"cimes")
                     os.mkdir(args["Path_output_treetops"])
                     
-                    #Process treetops extraction on each tile
+                    # Process treetops extraction on each tile
                     args['suffix'] = 'cimes'
                     #options = [args['suffix'], str(args['GradConvDiameter']), str(args['MinHeightThres']),'', args["Path_output"]]
                     options = {
@@ -591,25 +591,20 @@ class forLim:
                         'MinHeightThres': float(args['MinHeightThres']),
                         'suffix': str(args['suffix']),
                         'src': '',
-                        'dst': str(args["Path_output_treetops"])
+                        'dst': str(args["Path_output_treetops"]),
                     }
-                    print options
-                    
                     for f in enumerate(files):
-                        self.dlg.progressBar.setValue(f[0]+2)
-                        QApplication.processEvents()
                         args['Path_input'] = f[1]
                         options['src'] = str(args['Path_input'])
-                        print options
-                        treeDetectLmax.main(options)
-                        
+                        delaunayMethod.main(options)
+                    
                 else:
                     ###################################
                     #  0. traitement tuile par tuile  #
                     ###################################
                     print "you chose the moving window method"
                     
-                    #Get file list
+                    # Get file list
                     path_input = args["Path_input"]
                     files = args["Path_input"].split(";")
                     nfiles = len(files)

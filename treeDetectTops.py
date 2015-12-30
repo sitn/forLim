@@ -25,7 +25,7 @@ Args:
 
 Example:
 
-    treeDetectLmax.py "tree" 4 2 "E:/data/mnc/test" "E:/" 
+    treeDetectTops.py "tree" 4 2 "E:/data/mnc/test" "E:/" 
 
 """
 
@@ -43,12 +43,48 @@ import scipy.ndimage
 from os.path import basename
 
 def main(options):
-    filename = basename(os.path.splitext(options['src'])[0])
-    shapePath = options['dst'] + '//' + filename + '_' + options['suffix'] + '.shp'
-    kmlPath = options['dst'] + '//' + filename + '_' + options['suffix'] + '.kml'
-    trees = processCHM(options)
-    shpsave(shapePath, trees)
-    kmlsave(kmlPath, trees)
+    print 'Computing treetops'
+    # Prepare the folders for outputs:
+    if not os.path.isdir(options['dst']):
+        os.mkdir('dst')
+        print 'output folder was created'
+    if not options['dst'].endswith('/'):
+        options['dst'] = options['dst'] + '//'
+    shpdst = options['dst'] + 'shp'
+    kmldst = options['dst'] + 'kml'
+    if not os.path.exists(shpdst):
+        os.makedirs(shpdst)
+        print 'output folder ' + shpdst + ' was created'
+    if not os.path.exists(kmldst):
+        os.makedirs(kmldst)
+        print 'output folder ' + kmldst + ' was created'
+
+    # For direct file input
+    if os.path.isdir(options['src']) == False:
+        filename = basename(os.path.splitext(options['src'])[0])
+        trees = processCHM(options)
+        shapePath = options['dst'] + 'shp//' + filename + '_' + options['suffix'] + '.shp'
+        kmlPath = options['dst'] + 'kml//' + filename + '_' + options['suffix'] + '.kml'
+        shpsave(shapePath, trees)
+        kmlsave(kmlPath, trees)
+        
+    # For folder input
+    if os.path.isdir(options['src']) == True:
+        if not options['src'].endswith('/'):
+            options['src'] = options['src'] + '//' 
+            
+        file_list = os.listdir(options['src'])
+        inputDir = options['src']
+
+        for k, file_list in enumerate(file_list):
+            print('processing ' + file_list)
+            options['src'] = inputDir + file_list
+            filename = basename(os.path.splitext(options['src'])[0])            
+            trees = processCHM(options)
+            shapePath = options['dst'] + 'shp//' + filename + '_' + options['suffix'] + '.shp'
+            kmlPath = options['dst'] + 'kml//' + filename + '_' + options['suffix'] + '.kml'
+            shpsave(shapePath, trees)
+            kmlsave(kmlPath, trees)
     print 'done'
     
 
@@ -56,7 +92,6 @@ def processCHM(options):
     ''' Extract tree positions from canopy height model
         @param  options       Input options (dictionnary)
     '''
-    print 'process in progress'
     dataset = gdal.Open(options['src'], gdalconst.GA_ReadOnly)
     
     # georeference
@@ -67,6 +102,9 @@ def processCHM(options):
     band = dataset.GetRasterBand(1)
     data = band.ReadAsArray(0, 0, dataset.RasterXSize, dataset.RasterYSize)
 
+    # filter non realstic data
+    data = (data < 60) * (data > 1) * data
+    
     # create kernel
     radius = options['WinRad']
     kernel = np.zeros((2*radius+1, 2*radius+1))
@@ -233,40 +271,18 @@ def ApplyGeoTransform(inx,iny,gt):
     return (outx,outy)    
 
 
-# if __name__ == "__main__":
+if __name__ == "__main__":
     
-    # options = {
-    # 'WinRad': float(sys.argv[2]), 
-    # 'MinHeightThres': float(sys.argv[3]),
-    # 'suffix': str(sys.argv[1]),
-    # 'src': str(sys.argv[4]),
-    # 'dst': str(sys.argv[5])
-    # }
-    # print options
-    # print "--main a été activée"
-    # if not options['src'].endswith('/'):
-        # options['src'] = options['src'] + '/' 
-        
-    # if not options['dst'].endswith('/'):
-        # options['dst'] = options['dst'] + '/'         
-        
-    # if os.path.isdir(options['src']) == False:
-        # main(options)
-    # if os.path.isdir(options['src']) == True:
-        # file_list = os.listdir(options['src'])
-        # inputDir = options['src']
-        # shpdst = options['dst'] + 'shp'
-        # kmldst = options['dst'] + 'kml'
-        # if not os.path.exists(shpdst):
-            # os.makedirs(shpdst)
-            # print 'output folder ' + shpdst + ' was created'
-        # if not os.path.exists(kmldst):
-            # os.makedirs(kmldst)
-            # print 'output folder ' + kmldst + ' was created'
-        # for k, file_list in enumerate(file_list):
-            # print('processing ' + file_list)
-            # options['src'] = inputDir + file_list
-            # main(options)
+    options = {
+    'WinRad': float(sys.argv[2]), 
+    'MinHeightThres': float(sys.argv[3]),
+    'suffix': str(sys.argv[1]),
+    'src': str(sys.argv[4]),
+    'dst': str(sys.argv[5])
+    }
+    
+    main(options)
+
 
 __author__ = "Matthew Parkan, LASIG, EPFL"
 __license__ = "GPL"
