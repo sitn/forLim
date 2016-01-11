@@ -4,13 +4,14 @@
 """
 Created on Fri Jan 10 09:23:53 2014
 
-Author: Matt Parkan, lasig, EPFL 
+Author: Matt Parkan, lasig, EPFL
+Modified for QGIS Plugin use by : Arnaud Poncet-Montanges, SFFN, Couvet (CH)
 
 Description:
 
 treeDetectLmax.py detects tree tops in a raster canopy height model (CHM) 
 using the local maxima method. It exports the resulting point geometries 
-(x, y, height) to the .shp and .kml data formats.
+(x, y, height) to the .shp data formats.
 
 Usage:
 
@@ -31,6 +32,7 @@ Example:
 
 
 import os
+from os.path import basename
 import sys
 from osgeo import gdal
 from osgeo import ogr
@@ -40,33 +42,22 @@ import numpy as np
 import scipy.signal
 import scipy.ndimage
 
-from os.path import basename
+# Custom modules
+import spatialIO as spio
 
 def main(options):
     print 'Computing treetops'
+    
     # Prepare the folders for outputs:
-    if not os.path.isdir(options['dst']):
-        os.mkdir('dst')
-        print 'output folder was created'
-    if not options['dst'].endswith('/'):
-        options['dst'] = options['dst'] + '//'
-    shpdst = options['dst'] + 'shp'
-    kmldst = options['dst'] + 'kml'
-    if not os.path.exists(shpdst):
-        os.makedirs(shpdst)
-        print 'output folder ' + shpdst + ' was created'
-    if not os.path.exists(kmldst):
-        os.makedirs(kmldst)
-        print 'output folder ' + kmldst + ' was created'
+    initialize(options)
 
     # For direct file input
     if os.path.isdir(options['src']) == False:
-        filename = basename(os.path.splitext(options['src'])[0])
+        options['filePath'] = options['src']
+        filename = basename(os.path.splitext(options['filePath'])[0])
         trees = processCHM(options)
-        shapePath = options['dst'] + 'shp//' + filename + '_' + options['suffix'] + '.shp'
-        kmlPath = options['dst'] + 'kml//' + filename + '_' + options['suffix'] + '.kml'
-        shpsave(shapePath, trees)
-        kmlsave(kmlPath, trees)
+        treetopsPath = options['dst'] + 'shp//' + filename + '_treetops.shp'
+        spio.pointShpWriter(treetopsPath, trees['prj_wkt'], trees['xpos'], trees['ypos'], trees['height'], 'H')
         
     # For folder input
     if os.path.isdir(options['src']) == True:
@@ -78,29 +69,39 @@ def main(options):
 
         for k, file_list in enumerate(file_list):
             print('processing ' + file_list)
-            options['src'] = inputDir + file_list
-            filename = basename(os.path.splitext(options['src'])[0])            
+            options['filePath'] = inputDir + file_list
+            filename = basename(os.path.splitext(options['filePath'])[0])            
             trees = processCHM(options)
-            shapePath = options['dst'] + 'shp//' + filename + '_' + options['suffix'] + '.shp'
-            kmlPath = options['dst'] + 'kml//' + filename + '_' + options['suffix'] + '.kml'
-            shpsave(shapePath, trees)
-            kmlsave(kmlPath, trees)
-    print 'done'
+            treetopsPath = options['dst'] + 'shp//' + filename + '_treetops.shp'
+            spio.pointShpWriter(treetopsPath, trees['prj_wkt'], trees['xpos'], trees['ypos'], trees['height'], 'H')
     
+    print 'Computing Treetops completed'
+    
+def initialize(options):
+    '''
+    Prepare the folders for outputs:
+    '''
+    
+    if not os.path.isdir(options['dst']):
+        os.mkdir(options['dst'])
+        print 'output folder was created'
+    if not options['dst'].endswith('/'):
+        options['dst'] = options['dst'] + '//'
+    tifdst = options['dst'] + 'tif'
+    if not os.path.exists(tifdst):
+        os.makedirs(tifdst)
+        print 'output folder ' + tifdst + ' was created'
+    shpdst = options['dst'] + 'shp'
+    if not os.path.exists(shpdst):
+        os.makedirs(shpdst)
+        print 'output folder ' + shpdst + ' was created'
+
 
 def processCHM(options):
-    ''' Extract tree positions from canopy height model
-        @param  options       Input options (dictionnary)
+    ''' Extract tree positions and heights from canopy height model
+        @param options Input options (dictionnary)
     '''
-    dataset = gdal.Open(options['src'], gdalconst.GA_ReadOnly)
-    
-    # georeference
-    geotransform = dataset.GetGeoTransform()
-    prj_wkt = dataset.GetProjectionRef()
-
-    # extract raster values
-    band = dataset.GetRasterBand(1)
-    data = band.ReadAsArray(0, 0, dataset.RasterXSize, dataset.RasterYSize)
+    data, geotransform, prj_wkt = spio.rasterReader(options['filePath'])
 
     # filter non realstic data
     data = (data < 60) * (data > 1) * data
@@ -114,7 +115,7 @@ def processCHM(options):
 
     # compute local maximum image
     data_max = scipy.ndimage.maximum_filter(data, size=None, footprint=kernel, output=None, mode='reflect', cval=0.0, origin=0)
-    maxima = (data == data_max) * (data >= options['MinHeightThres']) # and data.all(data > 2)
+    maxima = (data == data_max) * (data >= options['MinHeightThres'])
 
     # determine location of local maxima
     labeled, num_objects = scipy.ndimage.label(maxima)
@@ -132,131 +133,6 @@ def processCHM(options):
     mx, my = ApplyGeoTransform(px,py,geotransform)
     
     return {'xpos':mx, 'ypos':my ,'height':pz, 'prj_wkt':prj_wkt}
-
-
-def shpsave(shapePath, trees):
-    ''' Save data to a shp file
-        @param  shpPath       Input path to the shp which will be created (Str)
-        @param  trees         Input tree data (dictionnary)
-    '''
-    
-    geoLocations = np.column_stack((trees['xpos'],trees['ypos']))
-    height = trees['height']
-    
-    # Get driver
-    driver = ogr.GetDriverByName('ESRI Shapefile')
-    
-    # Create shapeData
-    shapePath = validateShapePath(shapePath)
-    if os.path.exists(shapePath):
-        os.remove(shapePath)
-    shapeData = driver.CreateDataSource(shapePath)
-    
-    # Create spatialReference
-    spatialReference = getSpatialReferenceFromWkt(trees['prj_wkt'])
-
-    # Create layer
-    layerName = os.path.splitext(os.path.split(shapePath)[1])[0]
-    layer = shapeData.CreateLayer(layerName, spatialReference, ogr.wkbPoint)
-    #layer.CreateField(ogr.FieldDefn("H", ogr.OFTReal))
-    
-    field_height = ogr.FieldDefn("H", ogr.OFTReal)
-    field_height.SetWidth(4)
-    field_height.SetPrecision(2)
-    
-    layer.CreateField(field_height)
-    
-    for pointIndex, geoLocation in enumerate(geoLocations):
-        # Create point
-        geometry = ogr.Geometry(ogr.wkbPoint)
-        geometry.SetPoint(0, geoLocation[0], geoLocation[1])
-        # Create feature
-        feature = ogr.Feature(layer.GetLayerDefn())
-        feature.SetGeometry(geometry)
-        feature.SetFID(pointIndex)
-        feature.SetField("H",float(height[pointIndex]))
-        #feature.SetField("H",int(height[pointIndex]*100))
-        
-        # Save feature
-        layer.CreateFeature(feature)
-        # Cleanup
-        geometry.Destroy()
-        feature.Destroy()
-    # Cleanup
-    shapeData.Destroy()
-    # Return
-    return shapePath
-
-
-def kmlsave(kmlPath, trees):
-    ''' Save data to a kml file
-        @param  kmlPath       Input path to the kml which will be created (Str)
-        @param  trees         Input tree data (dictionnary)
-    '''
-    geoLocations = np.column_stack((trees['xpos'],trees['ypos']))
-    height = trees['height']
-    
-    driver = ogr.GetDriverByName('KML')
-
-    # Create shapeData
-    kmlPath = validateKmlPath(kmlPath)
-    if os.path.exists(kmlPath):
-        os.remove(kmlPath)
-        
-    kmlData = driver.CreateDataSource(kmlPath)
-    # Create spatialReference
-    outSpatialRef = osr.SpatialReference()
-    outSpatialRef.ImportFromEPSG(4326) # output SpatialReference
-    
-    spatialReference = getSpatialReferenceFromWkt(trees['prj_wkt'])
-    transform = osr.CoordinateTransformation(spatialReference, outSpatialRef)
-
-    # Create layer
-    layerName = os.path.splitext(os.path.split(kmlPath)[1])[0]
-    layer = kmlData.CreateLayer(layerName, outSpatialRef, ogr.wkbPoint)
-    
-    field_height = ogr.FieldDefn("H", ogr.OFTReal)
-    field_height.SetWidth(4)
-    field_height.SetPrecision(2)
-    
-    layer.CreateField(field_height)
-    
-    for pointIndex, geoLocation in enumerate(geoLocations):
-        # Create point
-        geometry = ogr.Geometry(ogr.wkbPoint)
-        geometry.SetPoint(0, geoLocation[0], geoLocation[1])
-        geometry.Transform(transform)
-        
-        # Create feature
-        feature = ogr.Feature(layer.GetLayerDefn())
-        feature.SetGeometry(geometry)
-        feature.SetFID(pointIndex)
-        feature.SetField("H",float(height[pointIndex]))
-        
-        # Save feature
-        layer.CreateFeature(feature)
-        # Cleanup
-        geometry.Destroy()
-        feature.Destroy()
-    # Cleanup
-    kmlData.Destroy()
-    # Return
-    return kmlPath
-    
-
-def getSpatialReferenceFromWkt(Wkt):
-    '''Return GDAL spatial reference object from proj4 string'''
-    spatialReference = osr.SpatialReference()
-    spatialReference.ImportFromWkt(Wkt)
-    return spatialReference
-    
-def validateShapePath(shapePath):
-    '''Validate shapefile extension'''
-    return os.path.splitext(str(shapePath))[0] + '.shp'
-    
-def validateKmlPath(kmlPath):
-    '''Validate kml extension'''
-    return os.path.splitext(str(kmlPath))[0] + '.kml'    
     
 # convert pixel coordinates to geospatial coordinates
 def ApplyGeoTransform(inx,iny,gt):

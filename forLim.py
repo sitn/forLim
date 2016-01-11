@@ -592,6 +592,7 @@ class forLim:
                         'suffix': str(args['suffix']),
                         'src': '',
                         'dst': str(args["Path_output_treetops"]),
+						'MinAreaThres': int(args['MinAreaThres'])
                     }
                     for f in enumerate(files):
                         args['Path_input'] = f[1]

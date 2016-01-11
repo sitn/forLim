@@ -35,6 +35,7 @@ Example:
 
 import treeDetectTops
 import treeDetectCrowns
+import forestDetectShape
 
 def main(options):
     '''
@@ -53,27 +54,27 @@ def processing(options):
     '''
     Processes the canopy height model to determine the forest delimitation
     '''
-
-    print 'Computing treetops'
     
     ###################################
-    #  0. Treetops Extraction         #
+    #  0. Forest shape extraction     #
+    ###################################
+    # Run the general forest prior shape, contour and isolated trees extraction 
+    forestDetectShape.main(options)
+    
+    ###################################
+    #  1. Treetops Extraction         #
     ###################################    
 
     # run Matthew Parkan's treeDetectLmax modified version    
-
     treeDetectTops.main(options)
 
     ###################################
-    #  1. Tree Crowns Extraction      #
+    #  2. Tree Crowns Extraction      #
     ###################################
-    
     # run the treecrown detection from the previously calculated treetops
-#    treeDetectCrowns.main(options)
+    treeDetectCrowns.main(options)
     
-    ###################################
-    #  2. Mathematical Morph          #
-    ###################################
+
 
     
 if __name__ == "__main__":

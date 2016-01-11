@@ -16,21 +16,75 @@ Args:
 Example:
 
 """
-
+import os
+from os.path import basename
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import gdalconst
 import numpy as np
 import scipy.ndimage
 
+# Custom modules
+import spatialIO as spio
+
 def main(options):
-    '''
-    Runs a set of tasks to determine the tree crowns using watershed 
-    segmentation
-    '''
-    processing(options)
+    print 'Computing treecrowns'
     
-    print 'Done'
+    # Prepare the folders for outputs:
+    initialize(options)
+    
+    # For direct file input
+    if os.path.isdir(options['src']) == False:
+        options['filePath'] = options['src']
+        filename = basename(os.path.splitext(options['filePath'])[0])
+        crowns, geotransform, prj_wkt = processing(options)
+        crownsPath = options['dst'] + 'tif//' + filename + '_crowns.tif'
+        spio.rasterWriter(crowns, crownsPath, geotransform, prj_wkt, gdal.GDT_Int16)
+        polyPath = options['dst'] + 'shp//' + filename + '_crowns.shp'
+        forest_maskPath = options['dst'] + 'tif//' + filename + '_forest_mask.tif'
+        spio.polygonizer(crownsPath, forest_maskPath, polyPath )
+
+    # For folder input
+    if os.path.isdir(options['src']) == True:
+        if not options['src'].endswith('/'):
+            options['src'] = options['src'] + '//' 
+            
+        file_list = os.listdir(options['src'])
+        inputDir = options['src']
+
+        for k, file_list in enumerate(file_list):
+            print('processing ' + file_list)
+            options['filePath'] = inputDir + file_list
+            filename = basename(os.path.splitext(options['filePath'])[0])            
+            crowns, geotransform, prj_wkt = processing(options)
+            crownsPath = options['dst'] + 'tif//' + filename + '_crowns.tif'
+            spio.rasterWriter(crowns, crownsPath, geotransform, prj_wkt, gdal.GDT_Int16)
+            polyPath = options['dst'] + 'shp//' + filename + '_crowns.shp'
+            forest_maskPath = options['dst'] + 'tif//' + filename + '_forest_mask.tif'
+            spio.polygonizer(crownsPath, forest_maskPath, polyPath )
+            
+    print 'Treecrowns have been correctly computed'
+
+
+def initialize(options):
+    '''
+    Prepare the folders for outputs:
+    '''
+    
+    if not os.path.isdir(options['dst']):
+        os.mkdir(options['dst'])
+        print 'output folder was created'
+    if not options['dst'].endswith('/'):
+        options['dst'] = options['dst'] + '//'
+    tifdst = options['dst'] + 'tif'
+    if not os.path.exists(tifdst):
+        os.makedirs(tifdst)
+        print 'output folder ' + tifdst + ' was created'
+    shpdst = options['dst'] + 'shp'
+    if not os.path.exists(shpdst):
+        os.makedirs(shpdst)
+        print 'output folder ' + shpdst + ' was created'
+        
 
 def processing(options):
     '''
@@ -39,21 +93,11 @@ def processing(options):
     print 'Tree crowns calculation in progress'
     
     # 1 Import Raster and compute Tree tops for markers use
-    # THIS CODE SECTION IS DIRECTLY IMPORTED FROM MATTHEW PARKAN's
-    # treeDetectLmax script under GPL license
-    # see https://github.com/mparkan/sylva/blob/master/Python/treeDetectLmax.py
+    data, geotransform, prj_wkt = spio.rasterReader(options['filePath'])
     
-    # gdal import raster canopy height model in read only
-    dataset = gdal.Open(options['src'], gdalconst.GA_ReadOnly)
+    # Filter non realstic data
+    data = (data < 60) * (data > 1) * data
     
-    # get the georeference using gdal item methods
-    geotransform = dataset.GetGeoTransform()
-    prj_wkt = dataset.GetProjectionRef()
-    
-    # extract raster values
-    band = dataset.GetRasterBand(1)
-    data = band.ReadAsArray(0, 0, dataset.RasterXSize, dataset.RasterYSize)
-
     # create kernel
     radius = options['WinRad']
     kernel = np.zeros((2*radius+1, 2*radius+1))
@@ -63,7 +107,7 @@ def processing(options):
 
     # compute local maximum image
     data_max = scipy.ndimage.maximum_filter(data, size=None, footprint=kernel, output=None, mode='reflect', cval=0.0, origin=0)
-    maxima = (data == data_max) * (data >= options['MinHeightThres']) # and data.all(data > 2)
+    maxima = (data == data_max) * (data >= options['MinHeightThres'])
     
     # determine location of local maxima
     labeled, num_objects = scipy.ndimage.label(maxima)
@@ -73,26 +117,14 @@ def processing(options):
     #to omit precision loss during int16 conversion /!\ int16 max value is 65,535 
     data = data * 1000
     
-    # labels the non forest zone with -9999 (uint16(55537))
-    #labeled = (data == 0) * (55537) + labeled 
-    labeled = (data == 0) * (55537) + labeled
+    # labels the non forest zone with -99999
+    labeled = (data == 0) * (-1) + labeled
     
     crowns = scipy.ndimage.watershed_ift(data.astype(np.uint16), labeled.astype(np.int16))
     
-    # 3 Writes down the crowns grid into a raster file
+    crowns = (crowns == -1) + crowns 
     
-    driver = gdal.GetDriverByName('GTiff')
-    ds = driver.Create(options['output'], dataset.RasterXSize, dataset.RasterYSize, 1, gdal.GDT_Int16 )
-    
-    ds.SetProjection(prj_wkt)
-    ds.SetGeoTransform(geotransform)
-    outband=ds.GetRasterBand(1)
-    #outband.SetStatistics(0, np.max(crowns), 1, 1)
-    outband.WriteArray(crowns)
-    ds = None
-    
-    # 4 Polygonize the raster grid
-    
+    return crowns, geotransform, prj_wkt    
     
     
 if __name__ == "__main__":

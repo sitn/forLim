@@ -20,8 +20,7 @@ Example:
     Import forLimTester
     
     forLimTester
-    
-@author: Arnaud Poncet-Montanges
+
 """
 # Import both methods scripts
 #import convolutionMethod
@@ -37,6 +36,7 @@ def main():
     options['WinRad'] = 4
     options['method'] = 2
     options['suffix'] = "cimes"
+    options['MinAreaThres'] = 800
     
     if options['method'] == 1:
         #convolutionMethod.main(options)
