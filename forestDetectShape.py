@@ -5,28 +5,16 @@ Created on Mon Jan 04 13:24:57 2016
 
 Author: Arnaud Poncet-Montanges, SFFN, Couvet (CH)
 
-Description:
-
-forestDetectShape.py detects general forest polygons, forest contour and 
-isolated trees using mathematical morphology operations from the scipy ndimage
-library. Result are stored as binary tif files, ideal for mask use or binary 
-selection purposes.
+Description: forestDetectShape.py detects general forest polygons, forest 
+    contour and isolated trees using mathematical morphology operations from 
+    the scipy ndimage library. Result are stored as binary tif files, ideal 
+    for mask use or binary selection purposes.
 
 Usage:
 
-    forestDetectShape.py Suffix WinRad MinHeightThres src dst
-
 Args:
 
-    Suffix: each output file name is named according to the input file name with a _suffix added 
-    WinRad: radius of the local maxima search window in pixels
-    MinHeightThres: minimal height threshold in the units of the canopy height model
-    src: the path to a single image file (OGR compatible format, check http://www.gdal.org/formats_list.html) or to folder containing several images
-    dst: the path to the destination folder
-
 Example:
-
-    forestDetectShape.py "bin" 4 2 "E:/data/mnc/test" "E:/" 
 
 """
 
@@ -54,24 +42,11 @@ def main(options):
     if os.path.isdir(options['src']) == False:
         options['filePath'] = options['src']
         filename = basename(os.path.splitext(options['filePath'])[0])
-        forest_mask, forest_zones, forest_outline, forest_isolated = processing(options)
+        forest_mask, forest_zones, forest_outline, forest_isolated, forest_selected = processing(options)
         
         # export raster results
-        forest_maskPath = options['dst'] + 'tif//' + filename + '_forest_mask.tif'
-        spio.rasterWriter(forest_mask, forest_maskPath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
-            
-        forest_zonesPath = options['dst'] + 'tif//' + filename + '_forest_zones.tif'
-        spio.rasterWriter(forest_zones, forest_zonesPath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
-            
-        forest_outlinePath = options['dst'] + 'tif//' + filename + '_forest_outline.tif'
-        spio.rasterWriter(forest_outline, forest_outlinePath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
-
-        forest_isolatedPath = options['dst'] + 'tif//' + filename + '_forest_isolated.tif'
-        spio.rasterWriter(forest_isolated, forest_isolatedPath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
-            
-        # vectorize the forest zones
-        polyPath = options['dst'] + 'shp//' + filename + '_forest_zones.shp'
-        spio.polygonizer(forest_zonesPath, forest_zonesPath, polyPath )
+        export(options, filename, forest_mask, forest_zones, forest_outline, forest_isolated, forest_selected)
+        
 
     # For folder input
     if os.path.isdir(options['src']):
@@ -80,29 +55,19 @@ def main(options):
             
         file_list = os.listdir(options['src'])
         inputDir = options['src']
-
+        
+        # Iterate each file for processing and exports
         for k, file_list in enumerate(file_list):
-            print('processing ' + file_list)
+            print('Processing file ' + file_list)
             options['filePath'] = inputDir + file_list
-            filename = basename(os.path.splitext(options['filePath'])[0])            
-            forest_mask, forest_zones, forest_outline, forest_isolated = processing(options)
+            filename = basename(os.path.splitext(options['filePath'])[0])
+            
+            # Process each file
+            forest_mask, forest_zones, forest_outline, forest_isolated, forest_selected = processing(options)
             
             # export raster results
-            forest_maskPath = options['dst'] + 'tif//' + filename + '_forest_mask.tif'
-            spio.rasterWriter(forest_mask, forest_maskPath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
+            export(options, filename, forest_mask, forest_zones, forest_outline, forest_isolated, forest_selected)
             
-            forest_zonesPath = options['dst'] + 'tif//' + filename + '_forest_zones.tif'
-            spio.rasterWriter(forest_zones, forest_zonesPath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
-            
-            forest_outlinePath = options['dst'] + 'tif//' + filename + '_forest_outline.tif'
-            spio.rasterWriter(forest_outline, forest_outlinePath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
-
-            forest_isolatedPath = options['dst'] + 'tif//' + filename + '_forest_isolated.tif'
-            spio.rasterWriter(forest_isolated, forest_isolatedPath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
-            
-            # vectorize the forest zones
-            polyPath = options['dst'] + 'shp//' + filename + '_forest_zones.shp'
-            spio.polygonizer(forest_zonesPath, forest_zonesPath, polyPath )
 
     print 'Computing forest shapes completed'
     
@@ -189,8 +154,36 @@ def processing(options):
     # Computing small elements
     forest_isolated = forest_filled - forest_zones
     
-    return forest_mask, forest_zones, forest_outline, forest_isolated
+    # Computing contour and isolated trees for selection purposes
+    forest_selected = forest_isolated + forest_outline
     
+    return forest_mask, forest_zones, forest_outline, forest_isolated, forest_selected
+    
+    
+def export(options, filename, forest_mask, forest_zones, forest_outline, forest_isolated, forest_selected):
+    '''
+    Export the results to files
+    '''
+    # export raster results
+    forest_maskPath = options['dst'] + 'tif//' + filename + '_forest_mask.tif'
+    spio.rasterWriter(forest_mask, forest_maskPath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
+        
+    forest_zonesPath = options['dst'] + 'tif//' + filename + '_forest_zones.tif'
+    spio.rasterWriter(forest_zones, forest_zonesPath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
+        
+    forest_outlinePath = options['dst'] + 'tif//' + filename + '_forest_outline.tif'
+    spio.rasterWriter(forest_outline, forest_outlinePath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
+
+    forest_isolatedPath = options['dst'] + 'tif//' + filename + '_forest_isolated.tif'
+    spio.rasterWriter(forest_isolated, forest_isolatedPath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
+    
+    forest_selectedPath = options['dst'] + 'tif//' + filename + '_forest_selected.tif'
+    spio.rasterWriter(forest_selected, forest_selectedPath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
+        
+    # vectorize the forest zones
+    polyPath = options['dst'] + 'shp//' + filename + '_forest_zones.shp'
+    spio.polygonizer(forest_zonesPath, forest_zonesPath, polyPath )
+ 
     
 if __name__ == "__main__":
     main(options)

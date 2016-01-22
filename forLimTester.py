@@ -37,8 +37,12 @@ def main():
     options['method'] = 2
     options['suffix'] = "cimes"
     options['MinAreaThres'] = 800
+    options['MaxAreaThres'] = 2500
+    options['forestRatio'] = 0.8
+    options['woodenPastureRatio'] = 0.3
+    options['plugin'] = False
     
-    if options['method'] == 1:
+    if options['method'] == True:
         #convolutionMethod.main(options)
         print 'You have chosen the convolution method'
         print 'It is not yet implemented for testing'

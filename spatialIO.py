@@ -66,6 +66,13 @@ def main():
     spio.rasterWriter(band, rasterPath, geotransform, prj_wkt, gdalformat)
     '''
 
+def pathChecker(path):
+    '''
+    Checks if a file path exists, if yes it removes it
+    '''
+    if os.path.exists(path):
+        os.remove(path)
+    
 
 def rasterReader(rasterPath):
     '''
@@ -94,8 +101,7 @@ def rasterWriter(band, rasterPath, geotransform, prj_wkt, gdalformat):
     # Can be improve with variable args inputs as geoformat as optional and default
     # Mutliple bands or band selector
     # Check if file already exists
-    if os.path.exists(rasterPath):
-        os.remove(rasterPath)
+    pathChecker(rasterPath)
     
     # extract array size
     RasterYSize, RasterXSize = band.shape
@@ -117,8 +123,7 @@ def pointShpWriter(pointPath, spatialRefWKT, x, y, attribute, label):
     
     # Create shapeData
     pointPath = os.path.splitext(str(pointPath))[0] + '.shp'
-    if os.path.exists(pointPath):
-        os.remove(pointPath)
+    pathChecker(pointPath)
     shapeData = driver.CreateDataSource(pointPath)
     
     # Create spatialReference from WKT input
@@ -167,7 +172,7 @@ def array2shp(shapePath, array):
     print('to be implemented')
 
     
-def polygonizer(rasterPath, maskPath, shapePath ):
+def polygonizer(rasterPath, maskPath, shapePath):
     '''Uses gdal.polygonize to vectorize a polygon layer
         @param rasterPath       Input Raster Path
         @param shapePath        Output Shape Path
@@ -185,10 +190,9 @@ def polygonizer(rasterPath, maskPath, shapePath ):
         mask = None
         
     # gdal export vector layer settings
-    if os.path.exists(shapePath):
-        os.remove(shapePath)
+    pathChecker(shapePath)
     drv = ogr.GetDriverByName("ESRI Shapefile")
-    ds_vec = drv.CreateDataSource( shapePath )
+    ds_vec = drv.CreateDataSource(shapePath)
     layer = ds_vec.CreateLayer("polygonized", srs = None )
     newField = ogr.FieldDefn('N', ogr.OFTInteger)
     layer.CreateField(newField)

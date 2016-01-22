@@ -150,11 +150,10 @@ def ApplyGeoTransform(inx,iny,gt):
 if __name__ == "__main__":
     
     options = {
-    'WinRad': float(sys.argv[2]), 
-    'MinHeightThres': float(sys.argv[3]),
-    'suffix': str(sys.argv[1]),
-    'src': str(sys.argv[4]),
-    'dst': str(sys.argv[5])
+    'WinRad': float(sys.argv[1]), 
+    'MinHeightThres': float(sys.argv[2]),
+    'src': str(sys.argv[3]),
+    'dst': str(sys.argv[4])
     }
     
     main(options)

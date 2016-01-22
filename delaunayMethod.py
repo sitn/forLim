@@ -13,29 +13,19 @@ triangulation of the treetops.The result is exported as a segmented shp file.
 
 Usage:
 
-    delaunayMethod.main(Args)
-
 Args:
 
-    Suffix: each output file name is named according to the input file name 
-        with a _suffix added 
-    WinRad: radius of the local maxima search window in pixels
-    MinHeightThres: minimal height threshold in the units of the canopy 
-        height model
-    src: the path to a single image file (OGR compatible format, check 
-        http://www.gdal.org/formats_list.html) or to folder containing 
-        several images
-    dst: the path to the destination folder
-
 Example:
-
-    delaunayMethod.main(Args)
     
 """
 
+# Import custom methods
 import treeDetectTops
 import treeDetectCrowns
 import forestDetectShape
+import treeSelector
+import convexHullComputer
+
 
 def main(options):
     '''
@@ -62,21 +52,32 @@ def processing(options):
     forestDetectShape.main(options)
     
     ###################################
-    #  1. Treetops Extraction         #
+    #  1. Treetops extraction         #
     ###################################    
 
     # run Matthew Parkan's treeDetectLmax modified version    
     treeDetectTops.main(options)
 
     ###################################
-    #  2. Tree Crowns Extraction      #
+    #  2. Tree crowns extraction      #
     ###################################
     # run the treecrown detection from the previously calculated treetops
     treeDetectCrowns.main(options)
+
+    ###################################
+    #  3. Trees selection             #
+    ###################################
+    # Select the trees from forest contour and isolated trees
+    treeSelector.main(options)
+    
+    ###################################
+    #  4. Convex hulls computation    #
+    ###################################
+    # Compute for each triangle the convex hull and the coverage ratio
+    convexHullComputer.main(options)
+    
     
 
-
-    
 if __name__ == "__main__":
     
     main(options)

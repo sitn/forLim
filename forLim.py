@@ -6,8 +6,10 @@
  Determine forest limits
                               -------------------
         begin                : 2015-07-30
-        git sha              : $Format:%H$
-        copyright            : (C) 2015 by M.Ruferner
+        git sha              : https://github.com/sitn/forLim
+        copyright            : (C) 2015-2016 by M. Parkan, M.Rufener and
+                                A. Poncet-Montanges (EPFL-LASIG, SFFN, SITN)
+        founded by           : Etat de Neuchâtel
         email                : marc.rufener@epfl.ch
  ***************************************************************************/
 
@@ -169,14 +171,7 @@ class forLim:
 
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
-        
-        
-        
-        ### ??????????????????????????????????????????
-#        QMacStyle.setWidgetSizePolicy(Qt.WA_MacNormalSize)
-        ### ??????????????????????????????????????????
-        
-        
+
         ## Input
         #Set last path input
         global last_path_input, input_message
@@ -521,8 +516,8 @@ class forLim:
                 
                 #Save inputs in args
                 args = {
-                    "Path_input" :          str(self.dlg.LE_input.text()),                  # Chemin d'accès du MNC (entrée)
-                    "Path_output":          str(self.dlg.LE_output.text()),                 # Chemin d'accès du dossier de sortie
+                    "Path_input" :          str(self.dlg.LE_input.text()),                  # Chemin d'accès au Modèle Numérique de Canopée (entrée)
+                    "Path_output":          str(self.dlg.LE_output.text()),                 # Chemin d'accès au dossier de sortie
                     "GradConvDiameter":     int(self.dlg.LE_gradConvDiameter.text()),       # Hauteur de la fenêtre de lissage
                     "MinAreaBigElem":       int(self.dlg.LE_minSurfBigElem.text()),         # Surface minimale des grands éléments
                     "BorderWidth":          int(self.dlg.LE_borderWidth.text()),            # Marge peuplement dense
@@ -545,87 +540,64 @@ class forLim:
                     }
                 
                 
-                global driver
-                driver = ogr.GetDriverByName("ESRI Shapefile")
-                
                 #Set Path-output for metadata
                 now_time = datetime.now()
                 name = "forLim_" + str(now_time.date()) + "_" + str(now_time.hour) + "H" + str(now_time.minute)
                 args["Path_output"] = os.path.join(args["Path_output"], name)
                 os.mkdir(args["Path_output"])
                 
-                ###Method selection
+                # Get file list
+                path_input = args["Path_input"]
+                files = args["Path_input"].split(";")
+                nfiles = len(files)
                 
+                # Set default values of process bar
+                self.dlg.progressBar.reset()
+                self.dlg.progressBar.setMinimum(1)
+                self.dlg.progressBar.setMaximum(nfiles+9)
+                
+                #Print progress on user window
+                self.dlg.label_printActualProcess.setText("Processing tiles ...")
+                self.dlg.progressBar.setValue(1)
+                QApplication.processEvents() 
+                
+                    
+                ###################################
+                #  A. Delaunay's triangulation    #
+                ###################################
                 if self.dlg.radio_TR.isChecked():
-                    #Triangulation method is chosen
-                    print "you chose the triangulation method"
+                    # Triangulation method is chosen
+                    print "You chose the triangulation method"
                     
-                    ###################################
-                    #  0. Extraction des cimes        #
-                    ###################################
-                    
-                    # Get file list
-                    path_input = args["Path_input"]
-                    files = args["Path_input"].split(";")
-                    nfiles = len(files)
-                    
-                    # Set default values of process bar
-                    self.dlg.progressBar.reset()
-                    self.dlg.progressBar.setMinimum(1)
-                    self.dlg.progressBar.setMaximum(nfiles+9)
-                    
-                    # Print progress on user window
-                    self.dlg.label_printActualProcess.setText("Processing tiles ...")
-                    self.dlg.progressBar.setValue(1)
-                    QApplication.processEvents()
-                    
-                    # Create treetops directory
-                    args["Path_output_treetops"] = os.path.join(args["Path_output"],"cimes")
-                    os.mkdir(args["Path_output_treetops"])
-                    
-                    # Process treetops extraction on each tile
-                    args['suffix'] = 'cimes'
-                    #options = [args['suffix'], str(args['GradConvDiameter']), str(args['MinHeightThres']),'', args["Path_output"]]
+                    # User input parameters
                     options = {
                         'WinRad': float(args['GradConvDiameter']),
                         'MinHeightThres': float(args['MinHeightThres']),
-                        'suffix': str(args['suffix']),
-                        'src': '',
-                        'dst': str(args["Path_output_treetops"]),
-						'MinAreaThres': int(args['MinAreaThres'])
+                        'src': str(args['Path_input']),
+                        'dst': str(args['Path_output']),
+    				 'MinAreaThres': int(args['MinAreaThres']),
+                        'MaxAreaThres': 2500,
+                        'forestRatio': 0.8,
+                        'woodenPastureRatio': 0.3,
+                        'plugin': True
                     }
+                    
                     for f in enumerate(files):
+                        self.dlg.progressBar.setValue(f[0]+2)
                         args['Path_input'] = f[1]
                         options['src'] = str(args['Path_input'])
                         delaunayMethod.main(options)
-                    
+
+                ###################################
+                #  B. Convolution Method          #
+                ###################################                    
                 else:
-                    ###################################
-                    #  0. traitement tuile par tuile  #
-                    ###################################
+                    # Convolution method is chosen
                     print "you chose the moving window method"
-                    
-                    # Get file list
-                    path_input = args["Path_input"]
-                    files = args["Path_input"].split(";")
-                    nfiles = len(files)
-                    
-                    
-                    # Set default values of process bar
-                    self.dlg.progressBar.reset()
-                    self.dlg.progressBar.setMinimum(1)
-                    self.dlg.progressBar.setMaximum(nfiles+9)
-                    
-                    #Print progress on user window
-                    self.dlg.label_printActualProcess.setText("Processing tiles ...")
-                    self.dlg.progressBar.setValue(1)
-                    QApplication.processEvents() 
-                    
-                    
+
                     #Create tiles directory
                     args["Path_output_tiles"] = os.path.join(args["Path_output"],"tiles")
                     os.mkdir(args["Path_output_tiles"])
-                    
                     
                     #Process on each tile
                     for f in enumerate(files):
@@ -637,7 +609,6 @@ class forLim:
                     
                     #Re-set path_input for metadata
                     args["Path_input"] = path_input
-                    
                     
                     #Set last path
                     if nfiles == 1:
@@ -796,6 +767,8 @@ class forLim:
                         ds.Destroy()
                         
                         #Create temporary file containing polygons of extents
+                        driver = ogr.GetDriverByName("ESRI Shapefile")                        
+                        
                         tmp_ds = driver.CreateDataSource(tmp_path)
                         tmp_lyr = tmp_ds.CreateLayer('mask',geom_type=ogr.wkbPolygon,srs=proj)
                         
