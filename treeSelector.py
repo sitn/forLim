@@ -25,37 +25,37 @@ from osgeo import ogr
 
 import spatialIO as spio
 
-# try:
-# from pyqt4.qtcore import *
-# from pyqt4.qtgui import *
-# from qgis.core import *
-# from qgis.gui import *
-# QSettings()
-	
-# except NameError, e:
-# Load required libraries to run from python (!Unstable!)
-# See http://gis.stackexchange.com/questions/129915/cannot-run-standalone-qgis-script
-# for any improvements
-import os, sys, glob
-# Prepare the environment
-from qgis.core import * # qgis.core must be imported before PyQt4.QtGui!!!
-from PyQt4.QtGui import *
-app = QApplication([])
-QgsApplication.setPrefixPath("C:\\OSGeo4W64\\apps\\qgis", True) # The True value is important
-QgsApplication.initQgis()
+try:
+	from PyQt4.QtCore import *
+	from PyQt4.QtGui import *
+	from qgis.core import *
+	from qgis.gui import *
+	QSettings()
+	from processing import runalg	
+except NameError, e:
+	# Load required libraries to run from python (!Unstable!)
+	# See http://gis.stackexchange.com/questions/129915/cannot-run-standalone-qgis-script
+	# for any improvements
+	import os, sys, glob
+	# Prepare the environment
+	from qgis.core import * # qgis.core must be imported before PyQt4.QtGui!!!
+	from PyQt4.QtGui import *
+	app = QApplication([])
+	QgsApplication.setPrefixPath("C:\\OSGeo4W64\\apps\\qgis", True) # The True value is important
+	QgsApplication.initQgis()
 
-from os.path import expanduser
-home = expanduser("~")
+	from os.path import expanduser
+	home = expanduser("~")
 
-#   Folder path of the Results for shapefiles
-path_dir = home + "\Desktop\Test\\"
-path_res = path_dir + "Results\\"
+	#   Folder path of the Results for shapefiles
+	path_dir = home + "\Desktop\Test\\"
+	path_res = path_dir + "Results\\"
 
-# Prepare processing framework 
-sys.path.append( home + '\.qgis2\python\plugins' )
-from processing.core.Processing import Processing
-Processing.initialize()
-from processing.tools import *
+	# Prepare processing framework 
+	sys.path.append( home + '\.qgis2\python\plugins' )
+	from processing.core.Processing import Processing
+	Processing.initialize()
+	from processing.tools import *
 
 
 def main(options):
@@ -131,8 +131,8 @@ def processing(options, filename):
     crownsPath = options['dst'] + 'shp//' + filename + '_crowns.shp'
     crownsStatsPath = options['dst'] + 'shp//' + filename + '_crowns_stats.shp'
     
-    if 0:
-        processing.runalg('saga:gridstatisticsforpolygons', forestSelectedPath, crownsPath, 0, 0, 1, 0, 0, 0, 0, 0, 0, crownsStatsPath)
+    if options['plugin']:
+        runalg('saga:gridstatisticsforpolygons', forestSelectedPath, crownsPath, 0, 0, 1, 0, 0, 0, 0, 0, 0, crownsStatsPath)
     else:
         general.runalg('saga:gridstatisticsforpolygons', forestSelectedPath, crownsPath, 0, 0, 1, 0, 0, 0, 0, 0, 0, crownsStatsPath)
     
@@ -180,10 +180,10 @@ def processing(options, filename):
     crownsSelectedPath = options['dst']+ 'shp//' + filename + '_crowns_selected.shp'
     treetopsTrianglesPath = options['dst'] + 'shp//' + filename + '_treetops_triangles.shp'
     
-    if 0:
-        processing.runalg('qgis:advancedpythonfieldcalculator', treetopsPath, 'N', 0, 10, 0, '', 'value = $id +1', treetopsSelectedPath)
-        processing.runalg('qgis:advancedpythonfieldcalculator', crownsStatsPath, 'ROW', 0, 10, 0, '', 'value = $id', crownsSelectedPath)
-        processing.runalg('qgis:delaunaytriangulation', treetopsSelectedPath, treetopsTrianglesPath)
+    if options['plugin']:
+        runalg('qgis:advancedpythonfieldcalculator', treetopsPath, 'N', 0, 10, 0, '', 'value = $id +1', treetopsSelectedPath)
+        runalg('qgis:advancedpythonfieldcalculator', crownsStatsPath, 'ROW', 0, 10, 0, '', 'value = $id', crownsSelectedPath)
+        runalg('qgis:delaunaytriangulation', treetopsSelectedPath, treetopsTrianglesPath)
 
     else:
         general.runalg('qgis:advancedpythonfieldcalculator', treetopsPath, 'N', 0, 10, 0, '', 'value = $id +1', treetopsSelectedPath)
