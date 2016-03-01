@@ -112,8 +112,7 @@ def processing(options):
     # determine location of local maxima
     labeled, num_objects = scipy.ndimage.label(maxima)
     
-    # 2 Computes Watershed segmentation
-    
+    ## 2 Computes Watershed segmentation
     #to omit precision loss during int16 conversion /!\ int16 max value is 65,535 
     data = data * 1000
     

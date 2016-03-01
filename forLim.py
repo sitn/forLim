@@ -540,6 +540,9 @@ class forLim:
                     }
                 
                 
+                global driver
+                driver = ogr.GetDriverByName("ESRI Shapefile")
+                
                 #Set Path-output for metadata
                 now_time = datetime.now()
                 name = "forLim_" + str(now_time.date()) + "_" + str(now_time.hour) + "H" + str(now_time.minute)

@@ -20,9 +20,9 @@ Example:
 """
 
 # Import custom methods
+import forestDetectShape
 import treeDetectTops
 import treeDetectCrowns
-import forestDetectShape
 import treeSelector
 import convexHullComputer
 

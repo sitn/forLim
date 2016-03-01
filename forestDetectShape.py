@@ -107,37 +107,28 @@ def processing(options):
     # Filter non realstic data
     data = (data < 60) * (data > 1) * data
     
-    # Computes no-tree/forest binary data
-    forest_mask = (data > 0)
     
-    # Fill the small holes
-    forest_filled = scipy.ndimage.binary_fill_holes(forest_mask).astype(bool)
+    ########################################################################
+    # Compute a priori forest zones 
+    ########################################################################
     
-    # Label the different zones
-    labeled_array, num_features = scipy.ndimage.label(forest_filled, structure = None, output = np.int)
+    # Compute no-tree/forest binary data
+    forest_mask = data > 0
     
-    # Initiate the forest zones array
-    forest_zones = np.zeros((RasterYSize, RasterXSize), dtype=np.bool)
+    # Fill the small holes which are to small to be considered as clearings
+    holes = forest_mask < 1
+    holes = filterElementsBySize(holes, options['MaxAreaThres'])
     
-    # filter the elements by size
-    matches = np.bincount(labeled_array.ravel())> options['MinAreaThres']
-    
-    # Get the IDs corresponding to matches
-    match_feat_ID = np.nonzero(matches)[0]
-    valid_match_feat_ID = np.setdiff1d(match_feat_ID,[0,num_features])
+    # Remove the small forest islands which are to small to be considered 
+    # as forest zones
+    forest_mask = holes < 1
+    forest_zones = filterElementsBySize(forest_mask, options['MinAreaThres'])
 
-    # ORing operation
-    forest_zones = np.in1d(labeled_array,valid_match_feat_ID).reshape(labeled_array.shape)
+    ########################################################################
+    ## Select trees at the outline of forests zones and isolated trees
+    ########################################################################
 
-#    # Previous lines are an optimization of this loop
-#    
-#    for i in range(1, num_features):
-#        zone_array = labeled_array == i
-#        zone = np.sum(zone_array)
-#        if zone > 800:
-#            forest_zones += zone_array
-    
-    # create kernel
+    # Create kernel
     radius = options['WinRad']
     kernel = np.zeros((2*radius+1, 2*radius+1))
     y,x = np.ogrid[-radius:radius+1, -radius:radius+1]
@@ -152,34 +143,67 @@ def processing(options):
     forest_inside = forest_zones - forest_outline
     
     # Computing small elements
-    forest_isolated = forest_filled - forest_zones
+    forest_isolated = forest_mask - forest_zones
     
     # Computing contour and isolated trees for selection purposes
     forest_selected = forest_isolated + forest_outline
     
+    
     return forest_mask, forest_zones, forest_outline, forest_isolated, forest_selected
+    
+
+def filterElementsBySize(elements, size):
+    ''' This function filters bool grids by elements size'''
+    # Get the array dimensions
+    RasterYSize, RasterXSize = elements.shape
+
+    # Label the different zones
+    labeled_array, num_features = scipy.ndimage.label(
+        elements, structure = None, output = np.int)
+
+    # Initiate the new elements array
+    elements_new = np.zeros((RasterYSize, RasterXSize), dtype=np.bool)
+    
+    # filter the elements by size
+    matches = np.bincount(labeled_array.ravel())> size
+    
+    # Get the IDs corresponding to matches
+    match_feat_ID = np.nonzero(matches)[0]
+    valid_match_feat_ID = np.setdiff1d(match_feat_ID,[0,num_features])
+    
+    # ORing operation
+    elements_new = np.in1d(labeled_array,valid_match_feat_ID).reshape(labeled_array.shape)
+    
+    #    # Previous lines are an optimization of this loop
+#    
+#    for i in range(1, num_features):
+#        zone_array = labeled_array == i
+#        zone = np.sum(zone_array)
+#        if zone > 800:
+#            forest_zones += zone_array
+    return elements_new
     
     
 def export(options, filename, forest_mask, forest_zones, forest_outline, forest_isolated, forest_selected):
     '''
     Export the results to files
     '''
-    # export raster results
+#    # export raster results
     forest_maskPath = options['dst'] + 'tif//' + filename + '_forest_mask.tif'
     spio.rasterWriter(forest_mask, forest_maskPath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
-        
+#        
     forest_zonesPath = options['dst'] + 'tif//' + filename + '_forest_zones.tif'
     spio.rasterWriter(forest_zones, forest_zonesPath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
         
-    forest_outlinePath = options['dst'] + 'tif//' + filename + '_forest_outline.tif'
-    spio.rasterWriter(forest_outline, forest_outlinePath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
-
-    forest_isolatedPath = options['dst'] + 'tif//' + filename + '_forest_isolated.tif'
-    spio.rasterWriter(forest_isolated, forest_isolatedPath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
-    
+#    forest_outlinePath = options['dst'] + 'tif//' + filename + '_forest_outline.tif'
+#    spio.rasterWriter(forest_outline, forest_outlinePath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
+#
+#    forest_isolatedPath = options['dst'] + 'tif//' + filename + '_forest_isolated.tif'
+#    spio.rasterWriter(forest_isolated, forest_isolatedPath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
+#    
     forest_selectedPath = options['dst'] + 'tif//' + filename + '_forest_selected.tif'
     spio.rasterWriter(forest_selected, forest_selectedPath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
-        
+#        
     # vectorize the forest zones
     polyPath = options['dst'] + 'shp//' + filename + '_forest_zones.shp'
     spio.polygonizer(forest_zonesPath, forest_zonesPath, polyPath )

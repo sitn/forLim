@@ -25,14 +25,17 @@ from osgeo import ogr
 
 import spatialIO as spio
 
-try:
+# Check whether we're on QGIS or not 
+import qgis.utils
+inqgis = qgis.utils.iface is not None
+
+if inqgis:
 	from PyQt4.QtCore import *
 	from PyQt4.QtGui import *
 	from qgis.core import *
 	from qgis.gui import *
-	QSettings()
 	from processing import runalg	
-except NameError, e:
+else:
 	# Load required libraries to run from python (!Unstable!)
 	# See http://gis.stackexchange.com/questions/129915/cannot-run-standalone-qgis-script
 	# for any improvements
@@ -59,7 +62,7 @@ except NameError, e:
 
 
 def main(options):
-    print 'Computing forest shapes'
+    print 'Selecting trees of interest'
     
     # Prepare the folders for outputs:
     initialize(options)
@@ -97,9 +100,9 @@ def main(options):
 
     print 'Selecting trees operation complete'
     
-    # If not running directly form QGis
-    if not options['plugin']:
-        QgsApplication.exitQgis()
+    # If not running directly from QGis
+#    if not options['plugin']:
+#        QgsApplication.exitQgis()
 
     
 

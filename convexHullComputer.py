@@ -23,7 +23,7 @@ from osgeo import osr
 import spatialIO as spio
 
 def main(options):
-    print 'Computing forest shapes'
+    print 'Computing convex hulls'
     
     # Prepare the folders for outputs:
     initialize(options)
@@ -58,7 +58,7 @@ def main(options):
             # export raster results
 #        export(options, filename, data)
             
-    print 'Selecting trees operation complete'
+    print 'Computing convex hulls operation complete'
     
 
 def initialize(options):

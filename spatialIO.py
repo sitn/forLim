@@ -127,12 +127,12 @@ def pointShpWriter(pointPath, spatialRefWKT, x, y, attribute, label):
     shapeData = driver.CreateDataSource(pointPath)
     
     # Create spatialReference from WKT input
-    spatialReference = osr.SpatialReference()
-    spatialReference.ImportFromWkt(spatialRefWKT)
+    srs = osr.SpatialReference()
+    srs.ImportFromWkt(spatialRefWKT)
 
     # Create layer
     layerName = os.path.splitext(os.path.split(pointPath)[1])[0]
-    layer = shapeData.CreateLayer(layerName, spatialReference, ogr.wkbPoint)
+    layer = shapeData.CreateLayer(layerName, srs, ogr.wkbPoint)
 
     field_height = ogr.FieldDefn(label, ogr.OFTReal)
     field_height.SetWidth(4)
@@ -193,7 +193,11 @@ def polygonizer(rasterPath, maskPath, shapePath):
     pathChecker(shapePath)
     drv = ogr.GetDriverByName("ESRI Shapefile")
     ds_vec = drv.CreateDataSource(shapePath)
-    layer = ds_vec.CreateLayer("polygonized", srs = None )
+    
+    srs = osr.SpatialReference()
+    srs.ImportFromWkt(dataset.GetProjectionRef())
+    
+    layer = ds_vec.CreateLayer("polygonized", srs)
     newField = ogr.FieldDefn('N', ogr.OFTInteger)
     layer.CreateField(newField)
         
@@ -206,6 +210,39 @@ def polygonizer(rasterPath, maskPath, shapePath):
     ds_vec = None
     
     print('Layer has been polygonized')
+    
+    
+def rasterizer(shapePath, rasterPath, attribute, gridModelPath):
+    '''Rasterize a shapefile using its attribute value
+        @param shapePath    Input shapefile
+        @param rasterPath   Output rasterfile
+        @param attribute    Attribute fieldname (string)
+        @gridModelPath      grid used to as reference'''
+    # Import data, geotransform and projection from the model grid
+    data, geotransform, prj_wkt = rasterReader(gridModelPath)
+    RasterYSize, RasterXSize = data.shape
+    
+    # Import data from the vector layer
+    driver = ogr.GetDriverByName('ESRI Shapefile')
+    vector_source = driver.Open(shapePath,0)
+    source_layer = vector_source.GetLayer(0)
+
+    target_ds = gdal.GetDriverByName( 'MEM' ).Create( "", RasterXSize, RasterYSize, 1, gdal.GDT_Int32)
+    target_ds.SetGeoTransform( geotransform )
+    target_ds.SetProjection( prj_wkt )
+    # Rasterise!
+    err = gdal.RasterizeLayer(target_ds, [1], source_layer,
+        options=["ATTRIBUTE=%s" % attribute ])
+    if err != 0:
+        raise Exception("error rasterizing layer: %s" % err)
+    data = target_ds.ReadAsArray()
+    print data.shape
+    rasterWriter(data, rasterPath, geotransform, prj_wkt, gdal.GDT_Int32)
+    
+    ## Variant using gdal_rasterize (syntax is not correct)
+    #    filename = basename(os.path.splitext(shapePath)[0])
+    #    os.system('gdal_rasterize -a ' + attribute + ' -l ' + filename + ' -tr ' + str(RasterXSize) + ' -' + str(RasterYSize) + ' + ' + shapePath + ' ' + rasterPath)
+
 
 if __name__ == "__main__":
     main()
