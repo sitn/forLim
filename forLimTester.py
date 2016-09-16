@@ -30,8 +30,8 @@ def main():
     print 'Hi, welcome to forLim in console mode'
     
     options = {}
-    options['src'] = 'C:\\Users\\Nono\\workspace\\input'
-    options['dst'] = 'C:\\Users\\Nono\\workspace\\output'
+    options['src'] = 'C:\\workspace\\input2\\'
+    options['dst'] = 'C:\\workspace\\output2\\'
     options['MinHeightThres'] = 2
     options['WinRad'] = 4
     options['method'] = 2

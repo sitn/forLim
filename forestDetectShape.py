@@ -58,15 +58,17 @@ def main(options):
         
         # Iterate each file for processing and exports
         for k, file_list in enumerate(file_list):
-            print('Processing file ' + file_list)
-            options['filePath'] = inputDir + file_list
-            filename = basename(os.path.splitext(options['filePath'])[0])
-            
-            # Process each file
-            forest_mask, forest_zones, forest_outline, forest_isolated, forest_selected = processing(options)
-            
-            # export raster results
-            export(options, filename, forest_mask, forest_zones, forest_outline, forest_isolated, forest_selected)
+            # File checker
+            if file_list.lower().endswith('.tif'):
+                print('Processing file ' + file_list)
+                options['filePath'] = inputDir + file_list
+                filename = basename(os.path.splitext(options['filePath'])[0])
+
+                # Process each file
+                forest_mask, forest_zones, forest_outline, forest_isolated, forest_selected = processing(options)
+
+                # export raster results
+                export(options, filename, forest_mask, forest_zones, forest_outline, forest_isolated, forest_selected)
             
 
     print 'Computing forest shapes completed'
