@@ -178,6 +178,10 @@ def processing(options, filename):
     # Clear dataSources
     ds_treetops.Destroy()
     
+    # CLear arrays
+    selected_array = []
+    unselected_array = []
+    
     # 
     treetopsSelectedPath = options['dst'] + 'shp//' + filename + '_treetops_selected.shp'
     crownsSelectedPath = options['dst']+ 'shp//' + filename + '_crowns_selected.shp'

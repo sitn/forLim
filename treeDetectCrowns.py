@@ -119,7 +119,7 @@ def processing(options):
     # labels the non forest zone with -99999
     labeled = (data == 0) * (-1) + labeled
     
-    crowns = scipy.ndimage.watershed_ift(data.astype(np.uint16), labeled.astype(np.int16))
+    crowns = scipy.ndimage.watershed_ift(data.astype(np.uint16), labeled.astype(np.int32))
     
     crowns = (crowns == -1) + crowns 
     
