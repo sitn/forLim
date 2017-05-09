@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>891</width>
-    <height>561</height>
+    <width>890</width>
+    <height>569</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,7 +22,7 @@
      <x>10</x>
      <y>10</y>
      <width>871</width>
-     <height>541</height>
+     <height>551</height>
     </rect>
    </property>
    <property name="sizePolicy">
@@ -54,9 +54,9 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>20</y>
+       <y>10</y>
        <width>841</width>
-       <height>481</height>
+       <height>511</height>
       </rect>
      </property>
      <property name="font">
@@ -199,7 +199,7 @@
         <x>500</x>
         <y>0</y>
         <width>331</width>
-        <height>481</height>
+        <height>511</height>
        </rect>
       </property>
       <property name="font">
@@ -211,9 +211,9 @@
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>260</y>
+         <y>290</y>
          <width>331</width>
-         <height>211</height>
+         <height>221</height>
         </rect>
        </property>
        <property name="font">
@@ -624,7 +624,7 @@
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>130</y>
+         <y>160</y>
          <width>331</width>
          <height>121</height>
         </rect>
@@ -848,7 +848,7 @@
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>0</y>
+         <y>30</y>
          <width>321</width>
          <height>121</height>
         </rect>
@@ -1031,6 +1031,32 @@
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
+      </widget>
+      <widget class="QRadioButton" name="radio_TR">
+       <property name="geometry">
+        <rect>
+         <x>160</x>
+         <y>10</y>
+         <width>161</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Triangulation de Delaunay</string>
+       </property>
+      </widget>
+      <widget class="QRadioButton" name="radio_FC">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>151</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Fenêtre de Convolution</string>
+       </property>
       </widget>
      </widget>
      <widget class="QWidget" name="widget_3" native="true">
@@ -1489,7 +1515,7 @@
         <x>460</x>
         <y>0</y>
         <width>41</width>
-        <height>481</height>
+        <height>511</height>
        </rect>
       </property>
       <property name="font">
