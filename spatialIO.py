@@ -3,7 +3,7 @@
 """
 Created on Fri Nov 27 09:23:53 2015
 
-Author: Arnaud Poncet-Montanges, SFFN, Couvet (CH)
+Author: SFFN/APM
 
 Description:
 
@@ -81,15 +81,15 @@ def rasterReader(rasterPath):
     '''
     # gdal import raster
     dataset = gdal.Open(rasterPath, gdalconst.GA_ReadOnly)
-    
+
     # georeference
     geotransform = dataset.GetGeoTransform()
     prj_wkt = dataset.GetProjectionRef()
-    
+
     # extract raster values
     band = dataset.GetRasterBand(1)
     data = band.ReadAsArray(0, 0, dataset.RasterXSize, dataset.RasterYSize)
-    
+
     return data, geotransform, prj_wkt;
 
 
@@ -102,30 +102,30 @@ def rasterWriter(band, rasterPath, geotransform, prj_wkt, gdalformat):
     # Mutliple bands or band selector
     # Check if file already exists
     pathChecker(rasterPath)
-    
+
     # extract array size
     RasterYSize, RasterXSize = band.shape
-    
+
     #create and write raster file    
     driver = gdal.GetDriverByName('GTiff')
     ds = driver.Create(rasterPath, RasterXSize, RasterYSize, 1, gdalformat )
     ds.SetProjection(prj_wkt)
     ds.SetGeoTransform(geotransform)
     ds.GetRasterBand(1).WriteArray(band)
-    
+
     #close raster file
     ds = None
-    
+
 
 def pointShpWriter(pointPath, spatialRefWKT, x, y, attribute, label):
     # Get driver
     driver = ogr.GetDriverByName('ESRI Shapefile')
-    
+
     # Create shapeData
     pointPath = os.path.splitext(str(pointPath))[0] + '.shp'
     pathChecker(pointPath)
     shapeData = driver.CreateDataSource(pointPath)
-    
+
     # Create spatialReference from WKT input
     srs = osr.SpatialReference()
     srs.ImportFromWkt(spatialRefWKT)
@@ -137,11 +137,11 @@ def pointShpWriter(pointPath, spatialRefWKT, x, y, attribute, label):
     field_height = ogr.FieldDefn(label, ogr.OFTReal)
     field_height.SetWidth(4)
     field_height.SetPrecision(2)
-    
+
     layer.CreateField(field_height)    
-    
+
     geoLocations = np.column_stack((x,y))
-    
+
     for pointIndex, geoLocation in enumerate(geoLocations):
         # Create point
         geometry = ogr.Geometry(ogr.wkbPoint)
@@ -151,7 +151,7 @@ def pointShpWriter(pointPath, spatialRefWKT, x, y, attribute, label):
         feature.SetGeometry(geometry)
         feature.SetFID(pointIndex)
         feature.SetField(label,float(attribute[pointIndex]))
-        
+
         # Save feature
         layer.CreateFeature(feature)
         # Cleanup
@@ -162,16 +162,7 @@ def pointShpWriter(pointPath, spatialRefWKT, x, y, attribute, label):
     # Return
     return pointPath
 
-    
-def array2shp(shapePath, array):
-    ''' Save data to a shp file
-        @param  shpPath       Input path to the shp which will be created (Str)
-        @param  trees         Input tree data (dictionnary)
-        
-    '''
-    print('to be implemented')
 
-    
 def polygonizer(rasterPath, maskPath, shapePath):
     '''Uses gdal.polygonize to vectorize a polygon layer
         @param rasterPath       Input Raster Path
@@ -181,26 +172,26 @@ def polygonizer(rasterPath, maskPath, shapePath):
     # gdal import raster
     dataset = gdal.Open(rasterPath, gdalconst.GA_ReadOnly)
     band = dataset.GetRasterBand(1)
-    
+
     # gdal import mask
     if maskPath:
         dsmask = gdal.Open(maskPath, gdalconst.GA_ReadOnly)
         mask = dataset.GetRasterBand(1)    
     else:
         mask = None
-        
+
     # gdal export vector layer settings
     pathChecker(shapePath)
     drv = ogr.GetDriverByName("ESRI Shapefile")
     ds_vec = drv.CreateDataSource(shapePath)
-    
+
     srs = osr.SpatialReference()
     srs.ImportFromWkt(dataset.GetProjectionRef())
-    
+
     layer = ds_vec.CreateLayer("polygonized", srs)
     newField = ogr.FieldDefn('N', ogr.OFTInteger)
     layer.CreateField(newField)
-        
+
     # Polygonize
     gdal.Polygonize(band, mask, layer, 0, [], callback=None )
 
@@ -208,10 +199,10 @@ def polygonizer(rasterPath, maskPath, shapePath):
     dataset = None
     dsmask = None
     ds_vec = None
-    
+
     print('Layer has been polygonized')
-    
-    
+
+
 def rasterizer(shapePath, rasterPath, attribute, gridModelPath):
     '''Rasterize a shapefile using its attribute value
         @param shapePath    Input shapefile
@@ -221,7 +212,7 @@ def rasterizer(shapePath, rasterPath, attribute, gridModelPath):
     # Import data, geotransform and projection from the model grid
     data, geotransform, prj_wkt = rasterReader(gridModelPath)
     RasterYSize, RasterXSize = data.shape
-    
+
     # Import data from the vector layer
     driver = ogr.GetDriverByName('ESRI Shapefile')
     vector_source = driver.Open(shapePath,0)
@@ -230,7 +221,7 @@ def rasterizer(shapePath, rasterPath, attribute, gridModelPath):
     target_ds = gdal.GetDriverByName( 'MEM' ).Create( "", RasterXSize, RasterYSize, 1, gdal.GDT_Int32)
     target_ds.SetGeoTransform( geotransform )
     target_ds.SetProjection( prj_wkt )
-    # Rasterise!
+
     err = gdal.RasterizeLayer(target_ds, [1], source_layer,
         options=["ATTRIBUTE=%s" % attribute ])
     if err != 0:
@@ -238,19 +229,13 @@ def rasterizer(shapePath, rasterPath, attribute, gridModelPath):
     data = target_ds.ReadAsArray()
     print data.shape
     rasterWriter(data, rasterPath, geotransform, prj_wkt, gdal.GDT_Int32)
-    
-    ## Variant using gdal_rasterize (syntax is not correct)
-    #    filename = basename(os.path.splitext(shapePath)[0])
-    #    os.system('gdal_rasterize -a ' + attribute + ' -l ' + filename + ' -tr ' + str(RasterXSize) + ' -' + str(RasterYSize) + ' + ' + shapePath + ' ' + rasterPath)
 
 
 if __name__ == "__main__":
     main()
 
 
-__author__ = "Arnaud Poncet-Montanges, SFFN, Couvet (CH)"
+__author__ = "SFFN/APM"
 __license__ = "GPL"
 __version__ = "0.1.0"
-__maintainer__ = "Arnaud Poncet-Montanges"
-__email__ = "arnaudponcetmontanges@gmail.com"
 __status__ = "Development"

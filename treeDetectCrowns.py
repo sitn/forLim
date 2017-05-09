@@ -2,7 +2,7 @@
 """
 Created on Mon Dec 07 08:54:39 2015
 
-Author: Arnaud Poncet-Montanges, SFFN, Couvet (NE)
+Author: SFFN/APM
 
 Description:
 
@@ -29,10 +29,10 @@ import spatialIO as spio
 
 def main(options):
     print 'Computing treecrowns'
-    
+
     # Prepare the folders for outputs:
     initialize(options)
-    
+
     # For direct file input
     if os.path.isdir(options['src']) == False:
         options['filePath'] = options['src']
@@ -48,7 +48,7 @@ def main(options):
     if os.path.isdir(options['src']) == True:
         if not options['src'].endswith('/'):
             options['src'] = options['src'] + '//' 
-            
+
         file_list = os.listdir(options['src'])
         inputDir = options['src']
 
@@ -62,7 +62,7 @@ def main(options):
             polyPath = options['dst'] + 'shp//' + filename + '_crowns.shp'
             forest_maskPath = options['dst'] + 'tif//' + filename + '_forest_mask.tif'
             spio.polygonizer(crownsPath, forest_maskPath, polyPath )
-            
+
     print 'Treecrowns have been correctly computed'
 
 
@@ -70,7 +70,7 @@ def initialize(options):
     '''
     Prepare the folders for outputs:
     '''
-    
+
     if not os.path.isdir(options['dst']):
         os.mkdir(options['dst'])
         print 'output folder was created'
@@ -84,20 +84,20 @@ def initialize(options):
     if not os.path.exists(shpdst):
         os.makedirs(shpdst)
         print 'output folder ' + shpdst + ' was created'
-        
+
 
 def processing(options):
     '''
     Processes the canopy height model to determine the forest delimitation
     '''
     print 'Tree crowns calculation in progress'
-    
+
     # 1 Import Raster and compute Tree tops for markers use
     data, geotransform, prj_wkt = spio.rasterReader(options['filePath'])
-    
+
     # Filter non realstic data
     data = (data < 60) * (data > 1) * data
-    
+
     # create kernel
     radius = options['WinRad']
     kernel = np.zeros((2*radius+1, 2*radius+1))
@@ -108,30 +108,28 @@ def processing(options):
     # compute local maximum image
     data_max = scipy.ndimage.maximum_filter(data, size=None, footprint=kernel, output=None, mode='reflect', cval=0.0, origin=0)
     maxima = (data == data_max) * (data >= options['MinHeightThres'])
-    
+
     # determine location of local maxima
     labeled, num_objects = scipy.ndimage.label(maxima)
-    
+
     ## 2 Computes Watershed segmentation
     #to omit precision loss during int16 conversion /!\ int16 max value is 65,535 
     data = data * 1000
-    
+
     # labels the non forest zone with -99999
     labeled = (data == 0) * (-1) + labeled
-    
+
     crowns = scipy.ndimage.watershed_ift(data.astype(np.uint16), labeled.astype(np.int32))
-    
+
     crowns = (crowns == -1) + crowns 
-    
+
     return crowns, geotransform, prj_wkt    
-    
-    
+
+
 if __name__ == "__main__":
     main(options)
 
-__author__ = "Arnaud Poncet-Montanges, SFFN, Couvet (NE)"
+__author__ = "SFFN/APM"
 __license__ = "GPL"
 __version__ = "0.1.0"
-__maintainer__ = "Arnaud Poncet-Montanges"
-__email__ = "arnaudponcetmontanges@gmail.com"
 __status__ = "Development"

@@ -2,7 +2,7 @@
 """
 Created on Thu Aug  6 09:17:25 2015
 
-@author: rufenerm
+@author: SFFN/MRu
 """
 
 # import modules
@@ -15,15 +15,13 @@ import os
 
 
 def main(args):
-    
+
     files = args['Path_input'].split(';')
-#    nfiles = len(files)
-       
+
     for f in enumerate(files):
-        
-#        print "%5d / %-5d" %(f[0]+1,nfiles)
+
         f_name = os.path.basename(f[1]).split('.tif')[0]
-        
+
         #########################
         #  0. Read input image  #
         #########################
@@ -31,20 +29,20 @@ def main(args):
         dataset = gdal.Open(f[1], gdalconst.GA_ReadOnly)
         cols = dataset.RasterXSize
         rows = dataset.RasterYSize
-        
+
         # georeference
         geotransform = dataset.GetGeoTransform()
         prj_wkt = dataset.GetProjectionRef()
-        
+
         # extract raster values
         band = dataset.GetRasterBand(1)
         data = band.ReadAsArray(0, 0, dataset.RasterXSize, dataset.RasterYSize)
-        
+
         ###########################################
         #  1. Determine forest areas iteratively  #
         ###########################################
         data_FD, data_PB = iterativeMethod(data,args)
-        
+
         #################################
         #  2. Export files TIF and SHP  #
         #################################
@@ -52,16 +50,11 @@ def main(args):
         dst_tif = os.path.join(args['Path_output_tiles'], f_name + '_binary_FD.tif')
         dst_shp = os.path.join(args['Path_output_tiles'], f_name + '_FD.shp')
         drawPolygons(data_FD,dataset,cols,rows,geotransform,prj_wkt,dst_tif,dst_shp)
-        
+
         #Wooded pasture (PB)
         dst_tif = os.path.join(args['Path_output_tiles'], f_name + '_binary_PB.tif')
         dst_shp = os.path.join(args['Path_output_tiles'], f_name + '_PB.shp')
         drawPolygons(data_PB,dataset,cols,rows,geotransform,prj_wkt,dst_tif,dst_shp)
-        
-        
-    
-#    print "done"
-
 
 
 # transform map coordinates (x,y) to image coordinates (col,row)
@@ -79,6 +72,7 @@ def mapToPixel(mx,my,gt):
         px,py=ApplyGeoTransform(mx,my,InvGeoTransform(gt))
     return int(px+0.5),int(py+0.5)
 
+
 # transform image coordinates (col,row) to map coordinates (x,y)
 def pixelToMap(px,py,gt):
     """ Convert pixel to map coordinates
@@ -89,6 +83,7 @@ def pixelToMap(px,py,gt):
     """
     mx,my=ApplyGeoTransform(px,py,gt)
     return mx,my
+
 
 def ApplyGeoTransform(inx,iny,gt):
     """ Apply a geotransform
@@ -101,11 +96,13 @@ def ApplyGeoTransform(inx,iny,gt):
     outy = gt[3] + inx*gt[4] + iny*gt[5]
     return (outx,outy)
 
+
 # cartestian to polar coordinates
 def cart2pol(x, y):
     theta = np.arctan2(y, x)
     rho = np.sqrt(x**2 + y**2)
     return (theta, rho)  
+
 
 # compute image gradient
 def grad2d(dem,dx,dy):
@@ -115,6 +112,7 @@ def grad2d(dem,dx,dy):
     asp = -asp + math.pi
     return grad, asp
 
+
 # create circular kernel
 def createKernel(radius):
     kernel = np.zeros((2*radius+1, 2*radius+1))
@@ -122,6 +120,7 @@ def createKernel(radius):
     mask = x**2 + y**2 <= radius**2
     kernel[mask] = 1
     return kernel
+
 
 def InvGeoTransform(gt_in):
     # Compute determinate
@@ -140,6 +139,7 @@ def InvGeoTransform(gt_in):
     gt_out[3] = (-gt_in[1] * gt_in[3] + gt_in[0] * gt_in[4]) * inv_det
     return gt_out
 
+
 # Fill clearings smaller than threshold
 def filterClearings(ima, args):
 #    se = scipy.ndimage.generate_binary_structure(2,2)
@@ -150,6 +150,7 @@ def filterClearings(ima, args):
     clearings_remove_pixel = clearings_idx[label_im_clearings]
     ima[clearings_remove_pixel] = True
     return ima
+
 
 # Remove islands smaller than threshold
 def filterIslands(ima, args):
@@ -162,11 +163,13 @@ def filterIslands(ima, args):
     ima[clearings_remove_pixel] = False
     return ima
 
+
 # Remove hedge that are thinner than threshold    
 def filterHedges(ima, se):
     ima = scipy.ndimage.morphology.binary_opening(ima, structure=se, iterations=1, origin=0)
 #    ima = scipy.ndimage.morphology.binary_opening(ima, structure=se, iterations=2, origin=0)
     return ima
+
 
 # Combined morphological filters
 def morphoFilter(ima, args, se):
@@ -175,30 +178,32 @@ def morphoFilter(ima, args, se):
     ima = filterHedges(ima, se)
     return ima
 
+
 # Proceed iterative method    
 def iterativeMethod(data,args):
     Ig = copy.copy(data)
-    
+
+
     # apply mean height convolution
     se = createKernel(np.ceil(args["GradConvDiameter"]/2))
     se = se/np.sum(se)
     Ig = scipy.ndimage.filters.convolve(Ig, se, mode="constant", cval=0.0)
-    
+
     # compute image gradient
     # to make a first approximation of forest areas
     Ig[(Ig <= args['MinHeightThres']) | (Ig >= args['MaxHeightThres'])] = 0.0
     fy, fx = np.gradient(Ig,1,1)
     asp, grad = cart2pol(fy,fx)
-    
+
     # filter gradient mask by applying an intensity threshold
     gradmask = np.zeros(grad.shape).astype(bool)
     gradmask[grad > 0.7] = True
-    
+
     # remove clearings from gradmask
     gradmask = filterClearings(gradmask, args)
-    
+
     a = gradmask.copy()
-    
+
     # separate small elements and large ones
     grad_label, nlabel = scipy.ndimage.measurements.label(a, output=int)
     sizes_elements = scipy.ndimage.sum(a, grad_label, range(nlabel + 1))   #compute the amount of pixels contained in each label, kowing that 1px is 1m2
@@ -210,67 +215,54 @@ def iterativeMethod(data,args):
     gradmaskL[remove_small_pixel] = False
     gradmaskS = gradmask.copy()
     gradmaskS[remove_large_pixel] = False
-   
+
     # find coutours of objects in large elements
     a = gradmaskL.copy()
     dx,dy = np.gradient(a)
     a = np.sqrt(dx**2 + dy**2)
     a = a>0
-    
+
     # dilate contours and get edge
     se = createKernel(args["BorderWidth"])
     borderMask = np.bitwise_and(gradmaskL, scipy.ndimage.morphology.binary_dilation(a, structure=se))
-    
+
     #connect dilated contours and small elements
     a = np.bitwise_or(borderMask,gradmaskS).astype(float)
-    
+
     #filter image
     weights = createKernel(np.ceil(args["CW_diameter"]/2))
     weights = weights/np.sum(weights)
     a = scipy.ndimage.filters.convolve(a, weights=weights, mode="constant", cval=0.0)
-    
-    
+
     se = createKernel(np.ceil(args["BorderWidth"]/2))
     a_FD = scipy.ndimage.morphology.binary_opening(a>args["Deg_Recouv_FD"], se)
     a_PB = scipy.ndimage.morphology.binary_opening(a>args["Deg_Recouv_PB"], se)
-    
+
     b = [a_FD, a_PB]
-    
-    
-    
-    
+
     #Let call a the input image corresponding to the overlap test and A the filtered output
     A = list()
     for a in b:
-        
-        
+
         gradmask = np.bitwise_or(a, gradmaskL)
 
-#        a = None
-        # pad array to limit edge effects
-    #    gradmask = np.pad(gradmask, ((2, 2), (2, 2)), 'constant')
-        
         # define circular opening structuring element
         kernel_hedge = createKernel(np.ceil(args['WidthThres']/2))
-            
+
         # repeat morphological operations until no change appears
         iterate = True
         new_ima = copy.copy(gradmask)
-        
+
         while iterate:
             old_ima = copy.copy(new_ima)
             new_ima = morphoFilter(copy.copy(old_ima), args, kernel_hedge)
             iterate = not np.array_equal(old_ima, new_ima)
-        
-        #unpad array
-    #    gradmask = gradmask[2:-2,2:-2]
-    #    new_ima = new_ima[2:-2,2:-2]
-        
+
         A.append(new_ima)
-    
-    
+
     return A[0], A[1]
-    
+
+
 # Verify the overlap level
 def forestOverlap(M,cw,args):
     M = (M>0).astype(float)
@@ -278,6 +270,7 @@ def forestOverlap(M,cw,args):
     M_FD = (M>=args["Deg_Recouv_FD"])
     M_PB = (M>=args["Deg_Recouv_PB"])
     return M_FD, M_PB
+
 
 # Determine which pixel is forest or not based on forestOverlap criteria
 def forestDetermination(data,args):
@@ -287,6 +280,7 @@ def forestDetermination(data,args):
     
     data_FD, data_PB = forestOverlap(data,cw,args)
     return data_FD, data_PB
+
 
 # Generate tif and shp files
 def drawPolygons(new_ima,dataset,cols,rows,geotransform,prj_wkt,path_tif,path_shp):
@@ -317,7 +311,7 @@ def drawPolygons(new_ima,dataset,cols,rows,geotransform,prj_wkt,path_tif,path_sh
 
 
 
-__Author__ = "Marc Rufener, SFFN"
+__Author__ = "SFFN/MRu"
 __Version__ = "1.0"
 __Date__ = "01.07.2015"
 
