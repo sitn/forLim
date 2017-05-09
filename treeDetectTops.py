@@ -5,7 +5,7 @@
 Created on Fri Jan 10 09:23:53 2014
 
 Author: Matt Parkan, lasig, EPFL
-Modified for QGIS Plugin use by : Arnaud Poncet-Montanges, SFFN, Couvet (CH)
+Modified for QGIS Plugin use by : SFFN/APM
 
 Description:
 
@@ -47,7 +47,7 @@ import spatialIO as spio
 
 def main(options):
     print 'Computing treetops'
-    
+
     # Prepare the folders for outputs:
     initialize(options)
 
@@ -58,12 +58,12 @@ def main(options):
         trees = processCHM(options)
         treetopsPath = options['dst'] + 'shp//' + filename + '_treetops.shp'
         spio.pointShpWriter(treetopsPath, trees['prj_wkt'], trees['xpos'], trees['ypos'], trees['height'], 'H')
-        
+
     # For folder input
     if os.path.isdir(options['src']) == True:
         if not options['src'].endswith('/'):
             options['src'] = options['src'] + '//' 
-            
+
         file_list = os.listdir(options['src'])
         inputDir = options['src']
 
@@ -74,14 +74,15 @@ def main(options):
             trees = processCHM(options)
             treetopsPath = options['dst'] + 'shp//' + filename + '_treetops.shp'
             spio.pointShpWriter(treetopsPath, trees['prj_wkt'], trees['xpos'], trees['ypos'], trees['height'], 'H')
-    
+
     print 'Computing Treetops completed'
-    
+
+
 def initialize(options):
     '''
     Prepare the folders for outputs:
     '''
-    
+
     if not os.path.isdir(options['dst']):
         os.mkdir(options['dst'])
         print 'output folder was created'
@@ -105,7 +106,7 @@ def processCHM(options):
 
     # filter non realstic data
     data = (data < 60) * (data > 1) * data
-    
+
     # create kernel
     radius = options['WinRad']
     kernel = np.zeros((2*radius+1, 2*radius+1))
@@ -131,9 +132,10 @@ def processCHM(options):
     py = np.asarray(y).astype(int) # y coordinate
     pz = data[py,px] # height value
     mx, my = ApplyGeoTransform(px,py,geotransform)
-    
+
     return {'xpos':mx, 'ypos':my ,'height':pz, 'prj_wkt':prj_wkt}
-    
+
+
 # convert pixel coordinates to geospatial coordinates
 def ApplyGeoTransform(inx,iny,gt):
     ''' Apply a geotransform
@@ -148,14 +150,14 @@ def ApplyGeoTransform(inx,iny,gt):
 
 
 if __name__ == "__main__":
-    
+
     options = {
     'WinRad': float(sys.argv[1]), 
     'MinHeightThres': float(sys.argv[2]),
     'src': str(sys.argv[3]),
     'dst': str(sys.argv[4])
     }
-    
+
     main(options)
 
 
