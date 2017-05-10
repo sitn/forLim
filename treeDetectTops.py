@@ -21,7 +21,7 @@ Args:
     Suffix: each output file name is named according to the input file name with a _suffix added 
     WinRad: radius of the local maxima search window in pixels
     MinHeightThres: minimal height threshold in the units of the canopy height model
-    src: the path to a single image file (OGR compatible format, check http://www.gdal.org/formats_list.html) or to folder containing several images
+    src: the path to a single image file (OGR compatible format, check http:/www.gdal.org/formats_list.html) or to folder containing several images
     dst: the path to the destination folder
 
 Example:
@@ -56,13 +56,13 @@ def main(options):
         options['filePath'] = options['src']
         filename = basename(os.path.splitext(options['filePath'])[0])
         trees = processCHM(options)
-        treetopsPath = options['dst'] + 'shp//' + filename + '_treetops.shp'
+        treetopsPath = options['dst'] + 'shp/' + filename + '_treetops.shp'
         spio.pointShpWriter(treetopsPath, trees['prj_wkt'], trees['xpos'], trees['ypos'], trees['height'], 'H')
 
     # For folder input
     if os.path.isdir(options['src']) == True:
         if not options['src'].endswith('/'):
-            options['src'] = options['src'] + '//' 
+            options['src'] = options['src'] + '/' 
 
         file_list = os.listdir(options['src'])
         inputDir = options['src']
@@ -72,7 +72,7 @@ def main(options):
             options['filePath'] = inputDir + file_list
             filename = basename(os.path.splitext(options['filePath'])[0])            
             trees = processCHM(options)
-            treetopsPath = options['dst'] + 'shp//' + filename + '_treetops.shp'
+            treetopsPath = options['dst'] + 'shp/' + filename + '_treetops.shp'
             spio.pointShpWriter(treetopsPath, trees['prj_wkt'], trees['xpos'], trees['ypos'], trees['height'], 'H')
 
     print 'Computing Treetops completed'
@@ -87,7 +87,7 @@ def initialize(options):
         os.mkdir(options['dst'])
         print 'output folder was created'
     if not options['dst'].endswith('/'):
-        options['dst'] = options['dst'] + '//'
+        options['dst'] = options['dst'] + '/'
     tifdst = options['dst'] + 'tif'
     if not os.path.exists(tifdst):
         os.makedirs(tifdst)

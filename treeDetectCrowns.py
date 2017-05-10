@@ -38,16 +38,16 @@ def main(options):
         options['filePath'] = options['src']
         filename = basename(os.path.splitext(options['filePath'])[0])
         crowns, geotransform, prj_wkt = processing(options)
-        crownsPath = options['dst'] + 'tif//' + filename + '_crowns.tif'
+        crownsPath = options['dst'] + 'tif/' + filename + '_crowns.tif'
         spio.rasterWriter(crowns, crownsPath, geotransform, prj_wkt, gdal.GDT_Int16)
-        polyPath = options['dst'] + 'shp//' + filename + '_crowns.shp'
-        forest_maskPath = options['dst'] + 'tif//' + filename + '_forest_mask.tif'
+        polyPath = options['dst'] + 'shp/' + filename + '_crowns.shp'
+        forest_maskPath = options['dst'] + 'tif/' + filename + '_forest_mask.tif'
         spio.polygonizer(crownsPath, forest_maskPath, polyPath )
 
     # For folder input
     if os.path.isdir(options['src']) == True:
         if not options['src'].endswith('/'):
-            options['src'] = options['src'] + '//' 
+            options['src'] = options['src'] + '/' 
 
         file_list = os.listdir(options['src'])
         inputDir = options['src']
@@ -57,10 +57,10 @@ def main(options):
             options['filePath'] = inputDir + file_list
             filename = basename(os.path.splitext(options['filePath'])[0])            
             crowns, geotransform, prj_wkt = processing(options)
-            crownsPath = options['dst'] + 'tif//' + filename + '_crowns.tif'
+            crownsPath = options['dst'] + 'tif/' + filename + '_crowns.tif'
             spio.rasterWriter(crowns, crownsPath, geotransform, prj_wkt, gdal.GDT_Int16)
-            polyPath = options['dst'] + 'shp//' + filename + '_crowns.shp'
-            forest_maskPath = options['dst'] + 'tif//' + filename + '_forest_mask.tif'
+            polyPath = options['dst'] + 'shp/' + filename + '_crowns.shp'
+            forest_maskPath = options['dst'] + 'tif/' + filename + '_forest_mask.tif'
             spio.polygonizer(crownsPath, forest_maskPath, polyPath )
 
     print 'Treecrowns have been correctly computed'
@@ -75,7 +75,7 @@ def initialize(options):
         os.mkdir(options['dst'])
         print 'output folder was created'
     if not options['dst'].endswith('/'):
-        options['dst'] = options['dst'] + '//'
+        options['dst'] = options['dst'] + '/'
     tifdst = options['dst'] + 'tif'
     if not os.path.exists(tifdst):
         os.makedirs(tifdst)

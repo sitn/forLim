@@ -6,8 +6,8 @@
  Determine forest limits
                               -------------------
         begin                : 2015-07-30
-        git sha              : https://github.com/sitn/forLim
-        copyright            : SFFN/MRu, APM
+        git sha              : https:/github.com/sitn/forLim
+        Authors            : SFFN/MRu, APM
         founded by           : Etat de Neuchâtel
  ***************************************************************************/
 
@@ -318,7 +318,7 @@ class forLim:
                 self.messageBar.pushMessage("Attention", "Le champ 'Dossier Destination' est invalide.", QgsMessageBar.CRITICAL, 7)
 
 
-### Hedges
+    ### Hedges
     #Show widget_hedges
     def show_widget_hedges(self):
         if self.dlg.CB_removeHedges.isChecked() == True:
@@ -575,16 +575,18 @@ class forLim:
                     print "You chose the triangulation method"
 
                     # User input parameters
+                    # this variable is redondant !
                     options = {
                         'WinRad': float(args['GradConvDiameter']),
                         'MinHeightThres': float(args['MinHeightThres']),
                         'src': str(args['Path_input']),
                         'dst': str(args['Path_output']),
-                     'MinAreaThres': int(args['MinAreaThres']),
+                        'MinAreaThres': int(args['MinAreaThres']),
                         'MaxAreaThres': 2500,
                         'forestRatio': 0.8,
                         'woodenPastureRatio': 0.3,
-                        'plugin': True
+                        'plugin': True,
+                        'args': args #take all args with us on the way. Options should be replaced by args in the future
                     }
 
                     for f in enumerate(files):
