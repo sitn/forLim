@@ -37,7 +37,7 @@ if inqgis:
     from processing import runalg    
 else:
     # Load required libraries to run from python (!Unstable!)
-    # See http://gis.stackexchange.com/questions/129915/cannot-run-standalone-qgis-script
+    # See http:/gis.stackexchange.com/questions/129915/cannot-run-standalone-qgis-script
     # for any improvements
     import os, sys, glob
     # Prepare the environment
@@ -76,7 +76,7 @@ def main(options):
     # For folder input
     if os.path.isdir(options['src']):
         if not options['src'].endswith('/'):
-            options['src'] = options['src'] + '//' 
+            options['src'] = options['src'] + '/' 
 
         file_list = os.listdir(options['src'])
         inputDir = options['src']
@@ -101,7 +101,7 @@ def initialize(options):
         os.mkdir(options['dst'])
         print 'output folder was created'
     if not options['dst'].endswith('/'):
-        options['dst'] = options['dst'] + '//'
+        options['dst'] = options['dst'] + '/'
     tifdst = options['dst'] + 'tif'
     if not os.path.exists(tifdst):
         os.makedirs(tifdst)
@@ -117,9 +117,9 @@ def processing(options, filename):
     Select trees which are on the contour of the forest and isolated trees.
     '''
     # Export Grid contour and isolated to crowns values    
-    forestSelectedPath = options['dst'] + 'tif//' + filename + '_forest_selected.tif'
-    crownsPath = options['dst'] + 'shp//' + filename + '_crowns.shp'
-    crownsStatsPath = options['dst'] + 'shp//' + filename + '_crowns_stats.shp'
+    forestSelectedPath = options['dst'] + 'tif/' + filename + '_forest_selected.tif'
+    crownsPath = options['dst'] + 'shp/' + filename + '_crowns.shp'
+    crownsStatsPath = options['dst'] + 'shp/' + filename + '_crowns_stats.shp'
 
     if options['plugin']:
         runalg('saga:gridstatisticsforpolygons', forestSelectedPath, crownsPath, 0, 0, 1, 0, 0, 0, 0, 0, 0, crownsStatsPath)
@@ -133,11 +133,14 @@ def processing(options, filename):
     ds_crownsStats = driver.Open(crownsStatsPath, 1) # 0 means read-only. 1 means writeable.
     crowns = ds_crownsStats.GetLayer()
 
+    layerDefinition = crowns.GetLayerDefn()
+
     # Find FID of each unselected crown and remove it from the new crown layer
     selected_array = []
     unselected_array = []
 
-    fieldname = (filename + "forest")[0:11]
+    fieldname = (filename + "forests")
+
     for feature in crowns:
         if feature.GetField(fieldname) == 1:
             selected_array.append(feature.GetField("N"))
@@ -149,7 +152,7 @@ def processing(options, filename):
 
     ## Select Treetops features with contour or isolated values (matching crowns)
     # Loads the treetops layer in edit mode
-    treetopsPath = options['dst'] + 'shp//' + filename + '_treetops.shp'
+    treetopsPath = options['dst'] + 'shp/' + filename + '_treetops.shp'
 
     ds_treetops = driver.Open(treetopsPath, 1) # 0 means read-only. 1 means writeable.
     treetops = ds_treetops.GetLayer()
@@ -165,9 +168,9 @@ def processing(options, filename):
     # CLear arrays
     selected_array = []
     unselected_array = []
-    treetopsSelectedPath = options['dst'] + 'shp//' + filename + '_treetops_selected.shp'
-    crownsSelectedPath = options['dst']+ 'shp//' + filename + '_crowns_selected.shp'
-    treetopsTrianglesPath = options['dst'] + 'shp//' + filename + '_treetops_triangles.shp'
+    treetopsSelectedPath = options['dst'] + 'shp/' + filename + '_treetops_selected.shp'
+    crownsSelectedPath = options['dst']+ 'shp/' + filename + '_crowns_selected.shp'
+    treetopsTrianglesPath = options['dst'] + 'shp/' + filename + '_treetops_triangles.shp'
 
     if options['plugin']:
         runalg('qgis:advancedpythonfieldcalculator', treetopsPath, 'N', 0, 10, 0, '', 'value = $id +1', treetopsSelectedPath)

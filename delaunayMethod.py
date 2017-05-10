@@ -37,7 +37,7 @@ def main(options):
 
     processing(options)
 
-    print 'Done'
+    print 'Delaunay method terminated'
 
 
 def processing(options):
@@ -75,6 +75,13 @@ def processing(options):
     ###################################
     # Compute for each triangle the convex hull and the coverage ratio
     convexHullComputer.main(options)
+    
+
+    print 'Computing convex hulls operation complete'
+
+        # self.dlg.progressBar.reset()
+    # self.messageBar.pushMessage("Delaunay!", "Fini!", QgsMessageBar.INFO, 7)
+    # Clear data sources
 
 if __name__ == "__main__":
 

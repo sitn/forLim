@@ -50,7 +50,7 @@ def main(options):
     # For folder input
     if os.path.isdir(options['src']):
         if not options['src'].endswith('/'):
-            options['src'] = options['src'] + '//' 
+            options['src'] = options['src'] + '/' 
 
         file_list = os.listdir(options['src'])
         inputDir = options['src']
@@ -81,7 +81,7 @@ def initialize(options):
         os.mkdir(options['dst'])
         print 'output folder was created'
     if not options['dst'].endswith('/'):
-        options['dst'] = options['dst'] + '//'
+        options['dst'] = options['dst'] + '/'
     tifdst = options['dst'] + 'tif'
     if not os.path.exists(tifdst):
         os.makedirs(tifdst)
@@ -97,7 +97,6 @@ def processing(options):
     Extract Forest zones from canopy height model with respect to minimal 
     legal shape size. Output are forest zones, forest contour, isolated trees
     '''
-
     # Import CHM raster data
     data, geotransform, prj_wkt = spio.rasterReader(options['filePath'])
     options['geotransform'] = geotransform
@@ -179,17 +178,18 @@ def export(options, filename, forest_mask, forest_zones, forest_outline, forest_
     '''
     Export the results to files
     '''
-#    # export raster results
-    forest_maskPath = options['dst'] + 'tif//' + filename + '_forest_mask.tif'
+    print "Exporting results to file"
+    # export raster results
+    forest_maskPath = options['dst'] + 'tif/' + filename + '_forest_mask.tif'
     spio.rasterWriter(forest_mask, forest_maskPath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
 
-    forest_zonesPath = options['dst'] + 'tif//' + filename + '_forest_zones.tif'
+    forest_zonesPath = options['dst'] + 'tif/' + filename + '_forest_zones.tif'
     spio.rasterWriter(forest_zones, forest_zonesPath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
 
-    forest_selectedPath = options['dst'] + 'tif//' + filename + '_forest_selected.tif'
+    forest_selectedPath = options['dst'] + 'tif/' + filename + '_forest_selected.tif'
     spio.rasterWriter(forest_selected, forest_selectedPath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
     # vectorize the forest zones
-    polyPath = options['dst'] + 'shp//' + filename + '_forest_zones.shp'
+    polyPath = options['dst'] + 'shp/' + filename + '_forest_zones.shp'
     spio.polygonizer(forest_zonesPath, forest_zonesPath, polyPath )
 
 

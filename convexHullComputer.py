@@ -17,6 +17,7 @@ import os
 from os.path import basename
 from osgeo import ogr
 from osgeo import osr
+from qgis.core import QgsVectorLayer, QgsMapLayerRegistry
 
 # Import custom modules
 
@@ -34,10 +35,11 @@ def main(options):
         filename = basename(os.path.splitext(options['filePath'])[0])
         processing(options, filename)
 
+
     # For folder input
     if os.path.isdir(options['src']):
         if not options['src'].endswith('/'):
-            options['src'] = options['src'] + '//' 
+            options['src'] = options['src'] + '/' 
 
         file_list = os.listdir(options['src'])
         inputDir = options['src']
@@ -51,8 +53,10 @@ def main(options):
             # Process each file
             processing(options, filename)
 
-    print 'Computing convex hulls operation complete'
-
+    if options["args"]["AddLayer"]:
+        vlayer = QgsVectorLayer(options['dst'] + 'shp/' + filename + '_forest_zones.shp', "forest", "ogr")
+        QgsMapLayerRegistry.instance().addMapLayer(vlayer)
+    
 def initialize(options):
     '''
     Prepare the folders for outputs:
@@ -61,7 +65,7 @@ def initialize(options):
         os.mkdir(options['dst'])
         print 'output folder was created'
     if not options['dst'].endswith('/'):
-        options['dst'] = options['dst'] + '//'
+        options['dst'] = options['dst'] + '/'
     tifdst = options['dst'] + 'tif'
     if not os.path.exists(tifdst):
         os.makedirs(tifdst)
@@ -76,32 +80,32 @@ def processing(options, filename):
     Select trees which are on the contour of the forest and isolated trees.
     '''
     # Export Grid contour and isolated to crowns values    
-    # forestSelectedPath = options['dst'] + 'tif//' + filename + '_forest_selected.tif'
+    # forestSelectedPath = options['dst'] + 'tif/' + filename + '_forest_selected.tif'
 
     # Load 
     # Load ogr driver to read vector files
     driver = ogr.GetDriverByName('ESRI Shapefile')
 
     # Loads treetops selection
-    treetopsPath = options['dst'] + 'shp//' + filename + '_treetops_selected.shp'
+    treetopsPath = options['dst'] + 'shp/' + filename + '_treetops_selected.shp'
     ds_treetops = driver.Open(treetopsPath, 0) # 0 means read-only. 1 means writeable.
     treetops = ds_treetops.GetLayer()
 
     # Loads crowns selection
-    crownsPath = options['dst'] + 'shp//' + filename + '_crowns_selected.shp'
+    crownsPath = options['dst'] + 'shp/' + filename + '_crowns_selected.shp'
     ds_crowns = driver.Open(crownsPath, 0) # 0 means read-only. 1 means writeable.
     crowns = ds_crowns.GetLayer()
 
     # Loads treetops triangulation
-    trianglesPath = options['dst'] + 'shp//' + filename + '_treetops_triangles.shp'
+    trianglesPath = options['dst'] + 'shp/' + filename + '_treetops_triangles.shp'
     ds_triangles = driver.Open(trianglesPath, 0) # 0 means read-only. 1 means writeable.
     triangles = ds_triangles.GetLayer()
 
     ## Create the new layers to store forest and wooden pasture convex hulls
-    CHsForestPath = options['dst'] + 'shp//' + filename + '_convexHulls_forest.shp'
+    CHsForestPath = options['dst'] + 'shp/' + filename + '_convexHulls_forest.shp'
     spio.pathChecker(CHsForestPath)
 
-    CHsWoodenPasturePath = options['dst'] + 'shp//' + filename + '_convexHulls_wooden_pasture.shp'
+    CHsWoodenPasturePath = options['dst'] + 'shp/' + filename + '_convexHulls_wooden_pasture.shp'
     spio.pathChecker(CHsWoodenPasturePath)
 
     # Create the convex hulls forest data source
@@ -175,7 +179,6 @@ def processing(options, filename):
             CHsWoodenPasture.CreateFeature(convHull)
             convHull.Destroy()
 
-    # Clear data sources
     ds_treetops.Destroy()
     ds_crowns.Destroy()
     ds_triangles.Destroy()
