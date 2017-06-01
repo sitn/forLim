@@ -151,6 +151,7 @@ def processing(options):
 
 def filterElementsBySize(elements, size):
     ''' This function filters bool grids by elements size'''
+    print 'filterElementsBySize'
     # Get the array dimensions
     RasterYSize, RasterXSize = elements.shape
 

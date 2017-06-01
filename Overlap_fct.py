@@ -12,7 +12,7 @@ import scipy.ndimage
 import copy
 import math
 import os
-
+import gc
 
 def main(args):
 
@@ -181,18 +181,18 @@ def morphoFilter(ima, args, se):
 
 # Proceed iterative method    
 def iterativeMethod(data,args):
-    Ig = copy.copy(data)
-
+    # Ig = copy.copy(data)
+    print 'iterativeMethod'
 
     # apply mean height convolution
     se = createKernel(np.ceil(args["GradConvDiameter"]/2))
     se = se/np.sum(se)
-    Ig = scipy.ndimage.filters.convolve(Ig, se, mode="constant", cval=0.0)
+    data = scipy.ndimage.filters.convolve(data, se, mode="constant", cval=0.0)
 
     # compute image gradient
     # to make a first approximation of forest areas
-    Ig[(Ig <= args['MinHeightThres']) | (Ig >= args['MaxHeightThres'])] = 0.0
-    fy, fx = np.gradient(Ig,1,1)
+    data[(data <= args['MinHeightThres']) | (data >= args['MaxHeightThres'])] = 0.0
+    fy, fx = np.gradient(data,1,1)
     asp, grad = cart2pol(fy,fx)
 
     # filter gradient mask by applying an intensity threshold
