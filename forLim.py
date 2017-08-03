@@ -35,6 +35,7 @@ import Overlap_fct
 import merge_fct
 from processing import runalg
 import os
+from uuid import uuid4 as uuid4
 
 
 class forLim:
@@ -210,7 +211,7 @@ class forLim:
         QObject.connect(self.dlg.CB_removePolylines, SIGNAL("clicked()"), self.show_widget_polylines)
         QObject.connect(self.dlg.PB_polylines, SIGNAL("clicked()"), self.polylines_path)
         QObject.connect(self.dlg.LE_polylines, SIGNAL("editingFinished()"), self.check_polylines_path)
-        
+
         ## Select Method Menu
         #Set convolution as default
         self.dlg.radio_TR.setChecked(True)
@@ -257,7 +258,7 @@ class forLim:
             callback=self.run,
             parent=self.iface.mainWindow())
 
-##########################################          
+##########################################
 
 ### Input
     #Select input files
@@ -291,8 +292,8 @@ class forLim:
     def input_message(self):
         global input_message
         input_message = False
-        QMessageBox.warning(None, 
-                            "Recouvrement entre les tuiles", 
+        QMessageBox.warning(None,
+                            "Recouvrement entre les tuiles",
                             "Attention: un recouvrement d'environ 500 m entre les tuiles est necessaire.\n\nSans ce recouvrement, les effets de bords sont importants.")
 
 ### Output
@@ -349,13 +350,13 @@ class forLim:
                 source = ogr.Open(path_hedges, 0)
                 layer = source.GetLayer()
                 layer_defn = layer.GetLayerDefn()
-                
+
                 field_names = []
                 type_names = ["Real","Integer"]
                 for i in range(layer_defn.GetFieldCount()):
                     if layer_defn.GetFieldDefn(i).GetTypeName() in type_names:
                         field_names.append(layer_defn.GetFieldDefn(i).GetName())
-                
+
                 #define Combo Box for attribute choice
                 self.dlg.CBox_hedgesBuffer.clear()
                 self.dlg.CBox_hedgesBuffer.addItems(field_names)
@@ -441,8 +442,7 @@ class forLim:
         else:
             self.dlg.CBox_polylinesBuffer.clear()
 
-
-            #Choose Convolution window (FC) or Delaunay's Triangulation (TR)
+    # Choose Convolution window (FC) or Delaunay's Triangulation (TR)
     def select_tr_method(self):
         if self.dlg.radio_TR.isChecked():
             print "TR method is selected"
@@ -512,7 +512,7 @@ class forLim:
             if int(self.dlg.LE_minSurfBigElem.text()) < int(self.dlg.LE_minForSurfThres.text()):
                 error_msg = error_msg + "La valeur de 'Surface minimum grands elements' doit etre superieure ou egale a la valeur de 'Surface minimale de la foret'.\n\n"
                 c = True
-            
+
             if c:
                 QMessageBox.warning(None, "Erreur(s)", error_msg)
             else:
@@ -537,9 +537,9 @@ class forLim:
                     "Remove_polygons":      bool(self.dlg.CB_removePolygons.isChecked()),   # Supprimer les zones urbanisées
                     "Path_polygons":        str(self.dlg.LE_polygons.text()),
                     "Remove_polylines":     bool(self.dlg.CB_removePolylines.isChecked()),  # Supprimer les lignes à haute tension
-                    "Path_polylines":       str(self.dlg.LE_polylines.text()), 
+                    "Path_polylines":       str(self.dlg.LE_polylines.text()),
                     "Remove_hedges":        bool(self.dlg.CB_removeHedges.isChecked()),     # Supprimer les haies
-                    "Path_hedges":          str(self.dlg.LE_hedges.text()), 
+                    "Path_hedges":          str(self.dlg.LE_hedges.text()),
                     }
 
                 global driver
@@ -547,6 +547,8 @@ class forLim:
 
                 #Set Path-output for metadata
                 now_time = datetime.now()
+                # USE UUID instead...
+                # name = "forLim_" + str(uuid4())
                 name = "forLim_" + str(now_time.date()) + "_" + str(now_time.hour) + "H" + str(now_time.minute)
                 args["Path_output"] = os.path.join(args["Path_output"], name)
                 os.mkdir(args["Path_output"])
@@ -564,12 +566,14 @@ class forLim:
                 #Print progress on user window
                 self.dlg.label_printActualProcess.setText("Processing tiles ...")
                 self.dlg.progressBar.setValue(1)
-                QApplication.processEvents() 
+                QApplication.processEvents()
 
 
                 ###################################
                 #  A. Delaunay's triangulation    #
                 ###################################
+                self.iface.actionShowPythonDialog().trigger()
+
                 if self.dlg.radio_TR.isChecked():
                     # Triangulation method is chosen
                     print "You chose the triangulation method"
@@ -577,7 +581,7 @@ class forLim:
                     # User input parameters
                     # this variable is redondant !
                     options = {
-                        'WinRad': float(args['GradConvDiameter']),
+                        'WinRad': int(args['GradConvDiameter']),
                         'MinHeightThres': float(args['MinHeightThres']),
                         'src': str(args['Path_input']),
                         'dst': str(args['Path_output']),
@@ -597,7 +601,7 @@ class forLim:
 
                 ###################################
                 #  B. Convolution Method          #
-                ###################################                    
+                ###################################
                 else:
                     # Convolution method is chosen
                     print "you chose the moving window method"
@@ -609,7 +613,7 @@ class forLim:
                     #Process on each tile
                     for f in enumerate(files):
                         self.dlg.progressBar.setValue(f[0]+2)
-                        QApplication.processEvents() 
+                        QApplication.processEvents()
                         args["Path_input"] = f[1]
                         Overlap_fct.main(args)
 
@@ -643,7 +647,7 @@ class forLim:
 
                     #Print progress on user window
                     self.dlg.progressBar.setValue(self.dlg.progressBar.value()+1)
-                    QApplication.processEvents() 
+                    QApplication.processEvents()
 
                     ###############################
                     #  2. dissoudre les éléments  #
@@ -665,7 +669,7 @@ class forLim:
                             #Dissolve merge files
                             runalg("gdalogr:dissolvepolygons", merge_path, "geometry", "TYPE", True, False, False, False, False, "diss", [], dissolve_path)
                             if not os.path.exists(dissolve_path):
-                                runalg("qgis:dissolve", merge_path, False, "TYPE", dissolve_path)                    
+                                runalg("qgis:dissolve", merge_path, False, "TYPE", dissolve_path)
 
                     #Print progress on user window
                     self.dlg.progressBar.setValue(self.dlg.progressBar.value()+1)
@@ -721,8 +725,8 @@ class forLim:
                     lastPath = f #simplify_FD.shp
 
                     #Print progress on user window
-                    self.dlg.progressBar.setValue(self.dlg.progressBar.value()+1) 
-                    QApplication.processEvents() 
+                    self.dlg.progressBar.setValue(self.dlg.progressBar.value()+1)
+                    QApplication.processEvents()
 
                     ###################################
                     #  4. créer le masque des tuiles  #
@@ -737,7 +741,7 @@ class forLim:
 
                         #Print progress on user window
                         self.dlg.label_printActualProcess.setText("Create mask ...")
-                        QApplication.processEvents() 
+                        QApplication.processEvents()
 
                         ##Get shapefiles extent and create a polygonfile with them
                         #Make polygon mask limited by boudaries
@@ -750,7 +754,7 @@ class forLim:
                         ds.Destroy()
 
                         #Create temporary file containing polygons of extents
-                        driver = ogr.GetDriverByName("ESRI Shapefile")                        
+                        driver = ogr.GetDriverByName("ESRI Shapefile")
 
                         tmp_ds = driver.CreateDataSource(tmp_path)
                         tmp_lyr = tmp_ds.CreateLayer('mask',geom_type=ogr.wkbPolygon,srs=proj)
@@ -790,19 +794,19 @@ class forLim:
                         runalg("qgis:dissolve", tmp_path, True, None, mask_path)
 
                     #Print progress on user window
-                    self.dlg.progressBar.setValue(self.dlg.progressBar.value()+1)        
-                    QApplication.processEvents() 
+                    self.dlg.progressBar.setValue(self.dlg.progressBar.value()+1)
+                    QApplication.processEvents()
 
                     ############################
                     #  5. supprimer les haies  #
-                    ############################  
+                    ############################
 
                     file_type = ["FD","PB"]
                     if args["Remove_hedges"]:
 
                         #Print progress on user window
                         self.dlg.label_printActualProcess.setText("Removing hedges layer ...")
-                        QApplication.processEvents() 
+                        QApplication.processEvents()
 
                         #Print progress on user window
                         args["HedgesBuffer"] = str(self.dlg.CBox_hedgesBuffer.currentText())
@@ -819,8 +823,8 @@ class forLim:
                         for f in enumerate(lastPath):
 
                             #Create new files
-                            tmp_path = os.path.join(args["Path_output_intermediate"], "simplify_hedges_" + file_type[f[0]] + "_tmp.shp") 
-                            simplifyHedges_path = os.path.join(args["Path_output_intermediate"], "simplify_hedges_" + file_type[f[0]] + ".shp")                        
+                            tmp_path = os.path.join(args["Path_output_intermediate"], "simplify_hedges_" + file_type[f[0]] + "_tmp.shp")
+                            simplifyHedges_path = os.path.join(args["Path_output_intermediate"], "simplify_hedges_" + file_type[f[0]] + ".shp")
                             new_file.append(simplifyHedges_path)
 
                             #Processing tools
@@ -851,7 +855,7 @@ class forLim:
 
                     #Print progress on user window
                     self.dlg.progressBar.setValue(self.dlg.progressBar.value()+1)
-                    QApplication.processEvents() 
+                    QApplication.processEvents()
 
                     ################################
                     #  6. supprimer des polygones  #
@@ -861,7 +865,7 @@ class forLim:
 
                         #Print progress on user window
                         self.dlg.label_printActualProcess.setText("Removing polygons layer ...")
-                        QApplication.processEvents() 
+                        QApplication.processEvents()
 
                         #Create new files
                         maskPolygons_path = (os.path.join(args["Path_output_intermediate"], "mask_polygons.shp"))
@@ -883,7 +887,7 @@ class forLim:
 
                     #Print progress on user window
                     self.dlg.progressBar.setValue(self.dlg.progressBar.value()+1)
-                    QApplication.processEvents() 
+                    QApplication.processEvents()
 
                     #################################
                     #  7. supprimer des polylignes  #
@@ -893,7 +897,7 @@ class forLim:
 
                          #Print progress on user window
                         self.dlg.label_printActualProcess.setText("Removing polylines layer ...")
-                        QApplication.processEvents() 
+                        QApplication.processEvents()
 
                         #Get attribut column name
                         args["PolylinesBuffer"] = str(self.dlg.CBox_polylinesBuffer.currentText())
@@ -921,7 +925,7 @@ class forLim:
 
                     #Print progress on user window
                     self.dlg.progressBar.setValue(self.dlg.progressBar.value()+1)
-                    QApplication.processEvents() 
+                    QApplication.processEvents()
 
                     ####################################################
                     #  8. séparer le paturage boisé et la forêt dense  #
@@ -962,7 +966,7 @@ class forLim:
 
                     #Add vector layer to map canevas
                     self.dlg.label_printActualProcess.setText("Add vector layer to map canevas ...")
-                    QApplication.processEvents() 
+                    QApplication.processEvents()
 
                     forest_path = os.path.join(args["Path_output"],"forest.shp")
                     if args["AddLayer"]:
@@ -999,4 +1003,3 @@ class forLim:
                     for arg_i in args:
                         file.write(arg_i + " : " + str(args[arg_i]) + "\n")
                     file.close()
-

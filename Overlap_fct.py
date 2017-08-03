@@ -115,6 +115,7 @@ def grad2d(dem,dx,dy):
 
 # create circular kernel
 def createKernel(radius):
+    radius = int(radius)
     kernel = np.zeros((2*radius+1, 2*radius+1))
     y,x = np.ogrid[-radius:radius+1, -radius:radius+1]
     mask = x**2 + y**2 <= radius**2

@@ -7,7 +7,7 @@ Author: SFFN/APM
 
 Description:
 
-delaunayMethod.py process a Canopy Height Model Raster Tile into forest and 
+delaunayMethod.py process a Canopy Height Model Raster Tile into forest and
 wooden pasture elements using a coverage ratio calculated on a Delaunay's
 triangulation of the treetops.The result is exported as a segmented shp file.
 
@@ -16,7 +16,7 @@ Usage:
 Args:
 
 Example:
-    
+
 """
 
 # Import custom methods
@@ -48,14 +48,14 @@ def processing(options):
     ###################################
     #  0. Forest shape extraction     #
     ###################################
-    # Run the general forest prior shape, contour and isolated trees extraction 
+    # Run the general forest prior shape, contour and isolated trees extraction
     forestDetectShape.main(options)
 
     ###################################
     #  1. Treetops extraction         #
-    ###################################    
+    ###################################
 
-    # run Matthew Parkan's treeDetectLmax modified version    
+    # run Matthew Parkan's treeDetectLmax modified version
     treeDetectTops.main(options)
 
     ###################################
@@ -64,18 +64,21 @@ def processing(options):
     # run the treecrown detection from the previously calculated treetops
     treeDetectCrowns.main(options)
 
+    # OM NOTE: SEEM OK TILL HERE
+
     ###################################
     #  3. Trees selection             #
     ###################################
     # Select the trees from forest contour and isolated trees
-    treeSelector.main(options)
-
+    treeSelector.main(options) # PROBLEM!!!
+    print("STOP HERE (DEBUG)--3")
+    return
     ###################################
     #  4. Convex hulls computation    #
     ###################################
     # Compute for each triangle the convex hull and the coverage ratio
     convexHullComputer.main(options)
-    
+
 
     print 'Computing convex hulls operation complete'
 
