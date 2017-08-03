@@ -4,9 +4,9 @@ Created on Wed Jan 13 07:48:54 2016
 
 Author: SFFN/APM
 
-Description: treeSelector.py selects the crowns and treetops of interest and 
-    filter theses to extract isolated trees from forest or wooden pasture 
-    patterns. Resulting selected trees and crowns are stored as point and 
+Description: treeSelector.py selects the crowns and treetops of interest and
+    filter theses to extract isolated trees from forest or wooden pasture
+    patterns. Resulting selected trees and crowns are stored as point and
     polygon shapefiles. This requires the qgis.core and PyQt4 librairies and
     the QGIS processing toolbox (installed by default).
 
@@ -25,7 +25,7 @@ from osgeo import ogr
 
 import spatialIO as spio
 
-# Check whether we're on QGIS or not 
+# Check whether we're on QGIS or not
 import qgis.utils
 inqgis = qgis.utils.iface is not None
 
@@ -34,7 +34,7 @@ if inqgis:
     from PyQt4.QtGui import *
     from qgis.core import *
     from qgis.gui import *
-    from processing import runalg    
+    from processing import runalg
 else:
     # Load required libraries to run from python (!Unstable!)
     # See http:/gis.stackexchange.com/questions/129915/cannot-run-standalone-qgis-script
@@ -43,18 +43,11 @@ else:
     # Prepare the environment
     from qgis.core import *
     from PyQt4.QtGui import *
-    app = QApplication([])
-    QgsApplication.setPrefixPath("C:\\OSGeo4W64\\apps\\qgis", True) # The True value is important
-    QgsApplication.initQgis()
 
     from os.path import expanduser
     home = expanduser("~")
 
-    #   Folder path of the Results for shapefiles
-    path_dir = home + "\Desktop\Test\\"
-    path_res = path_dir + "Results\\"
-
-    # Prepare processing framework 
+    # Prepare processing framework
     sys.path.append( home + '\.qgis2\python\plugins' )
     from processing.core.Processing import Processing
     Processing.initialize()
@@ -69,26 +62,27 @@ def main(options):
 
     # For direct file input
     if os.path.isdir(options['src']) == False:
+        print("SINGLE FILE INPUT")
         options['filePath'] = options['src']
         filename = basename(os.path.splitext(options['filePath'])[0])
         processing(options, filename)
 
-    # For folder input
-    if os.path.isdir(options['src']):
-        if not options['src'].endswith('/'):
-            options['src'] = options['src'] + '/' 
-
-        file_list = os.listdir(options['src'])
-        inputDir = options['src']
-
-        # Iterate each file for processing and exports
-        for k, file_list in enumerate(file_list):
-            print('Processing file ' + file_list)
-            options['filePath'] = inputDir + file_list
-            filename = basename(os.path.splitext(options['filePath'])[0])
-
-            # Process each file
-            processing(options, filename)
+    # # For folder input
+    # if os.path.isdir(options['src']):
+    #     if not options['src'].endswith('/'):
+    #         options['src'] = options['src'] + '/'
+    #
+    #     file_list = os.listdir(options['src'])
+    #     inputDir = options['src']
+    #
+    #     # Iterate each file for processing and exports
+    #     for k, file_list in enumerate(file_list):
+    #         print('Processing file ' + file_list)
+    #         options['filePath'] = inputDir + file_list
+    #         filename = basename(os.path.splitext(options['filePath'])[0])
+    #
+    #         # Process each file
+    #         processing(options, filename)
 
     print 'Selecting trees operation complete'
 
@@ -116,15 +110,16 @@ def processing(options, filename):
     '''
     Select trees which are on the contour of the forest and isolated trees.
     '''
-    # Export Grid contour and isolated to crowns values    
+    # Export Grid contour and isolated to crowns values
     forestSelectedPath = options['dst'] + 'tif/' + filename + '_forest_selected.tif'
     crownsPath = options['dst'] + 'shp/' + filename + '_crowns.shp'
     crownsStatsPath = options['dst'] + 'shp/' + filename + '_crowns_stats.shp'
-
+    print(crownsStatsPath)
+    # WHICH STAT HAS TO BE CALCULATED ???
     if options['plugin']:
-        runalg('saga:gridstatisticsforpolygons', forestSelectedPath, crownsPath, 0, 0, 1, 0, 0, 0, 0, 0, 0, crownsStatsPath)
-    else:
-        general.runalg('saga:gridstatisticsforpolygons', forestSelectedPath, crownsPath, 0, 0, 1, 0, 0, 0, 0, 0, 0, crownsStatsPath)
+        runalg('saga:gridstatisticsforpolygons', forestSelectedPath, crownsPath, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, crownsStatsPath)
+    # else:
+    #     general.runalg('saga:gridstatisticsforpolygons', forestSelectedPath, crownsPath, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, crownsStatsPath)
 
     ## Select Crown features with contour or isolated values
     # Loads new crowns layer in edit mode
@@ -139,11 +134,19 @@ def processing(options, filename):
     selected_array = []
     unselected_array = []
 
-    fieldname = (filename + "forests")
+    # for feature in crowns:
+    #     f_index = feature.GetFieldIndex("N")
+    #
+    #     if feature.GetField(f_index) == 1:
+    #         selected_array.append(feature.GetField("N"))
+    #     else:
+    #         unselected_array.append(feature.GetField("N"))
+    #         crowns.DeleteFeature(feature.GetFID())
 
     for feature in crowns:
-        if feature.GetField(fieldname) == 1:
+        if feature.GetField(1) != 1: # TODO: CHECK THAT!!!
             selected_array.append(feature.GetField("N"))
+
         else:
             unselected_array.append(feature.GetField("N"))
             crowns.DeleteFeature(feature.GetFID())
