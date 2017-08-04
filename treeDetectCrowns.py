@@ -6,7 +6,7 @@ Author: SFFN/APM
 
 Description:
 
-treeDetectCrowns.py detects tree crowns in a raster canopy height model (CHM) 
+treeDetectCrowns.py detects tree crowns in a raster canopy height model (CHM)
 using the watershed algorithm from numpy and the tree tops as markers.
 
 Usage:
@@ -47,7 +47,7 @@ def main(options):
     # For folder input
     if os.path.isdir(options['src']) == True:
         if not options['src'].endswith('/'):
-            options['src'] = options['src'] + '/' 
+            options['src'] = options['src'] + '/'
 
         file_list = os.listdir(options['src'])
         inputDir = options['src']
@@ -55,7 +55,7 @@ def main(options):
         for k, file_list in enumerate(file_list):
             print('processing ' + file_list)
             options['filePath'] = inputDir + file_list
-            filename = basename(os.path.splitext(options['filePath'])[0])            
+            filename = basename(os.path.splitext(options['filePath'])[0])
             crowns, geotransform, prj_wkt = processing(options)
             crownsPath = options['dst'] + 'tif/' + filename + '_crowns.tif'
             spio.rasterWriter(crowns, crownsPath, geotransform, prj_wkt, gdal.GDT_Int16)
@@ -113,7 +113,7 @@ def processing(options):
     labeled, num_objects = scipy.ndimage.label(maxima)
 
     ## 2 Computes Watershed segmentation
-    #to omit precision loss during int16 conversion /!\ int16 max value is 65,535 
+    #to omit precision loss during int16 conversion /!\ int16 max value is 65,535
     data = data * 1000
 
     # labels the non forest zone with -99999
@@ -121,15 +121,10 @@ def processing(options):
 
     crowns = scipy.ndimage.watershed_ift(data.astype(np.uint16), labeled.astype(np.int32))
 
-    crowns = (crowns == -1) + crowns 
+    crowns = (crowns == -1) + crowns
 
-    return crowns, geotransform, prj_wkt    
+    return crowns, geotransform, prj_wkt
 
 
 if __name__ == "__main__":
     main(options)
-
-__author__ = "SFFN/APM"
-__license__ = "GPL"
-__version__ = "0.1.0"
-__status__ = "Development"
