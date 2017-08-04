@@ -1,18 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Jan 14 16:49:24 2016
 
-Description: conveHullComputer.py create convex hulls of treetops triangles,
-    computing for each one the coverage ratio of total crown area and sorting
-    these into forest and wooden pasture possible areas.
-
-Usage:
-
-Args:
-
-Example:
-
-"""
 import os
 from os.path import basename
 from osgeo import ogr
@@ -63,17 +50,14 @@ def initialize(options):
     '''
     if not os.path.isdir(options['dst']):
         os.mkdir(options['dst'])
-        print 'output folder was created'
     if not options['dst'].endswith('/'):
         options['dst'] = options['dst'] + '/'
     tifdst = options['dst'] + 'tif'
     if not os.path.exists(tifdst):
         os.makedirs(tifdst)
-        print 'output folder ' + tifdst + ' was created'
     shpdst = options['dst'] + 'shp'
     if not os.path.exists(shpdst):
         os.makedirs(shpdst)
-        print 'output folder ' + shpdst + ' was created'
 
 
 def processing(options, filename):
@@ -81,7 +65,8 @@ def processing(options, filename):
     Select trees which are on the contour of the forest and isolated trees.
     '''
     # Export Grid contour and isolated to crowns values
-
+    print(options)
+    return
     driver = ogr.GetDriverByName('ESRI Shapefile')
 
     # Loads treetops selection
@@ -125,10 +110,10 @@ def processing(options, filename):
     # Prepare fields for the wooden pasture layer
     CHsWoodenPasture.CreateField(ogr.FieldDefn('ID', ogr.OFTInteger))
 
-    # For each triangle we will compute a convex hull for each crown composing it.
+    # Compute the convex hull for each crown that composes a triangle
+
     # Create the matching table for crowns
     crown_N = []
-
     for crown in crowns:
         crown_N.append(crown.GetField('N'))
 
@@ -168,8 +153,8 @@ def processing(options, filename):
             ratio = crowns_area / conv_area
 
             # Store the Convex Hulls in the corresponding category
-            forestRatio = 0.9 # THIS SHOULD NOT BE HERE!!!!!
-            WoodenPastureRatio = 0.3 # THIS SHOULD NOT BE HERE!!!!!
+            forestRatio = options['forestRatio']
+            WoodenPastureRatio = options['woodenPastureRatio']
 
             if ratio > forestRatio:
                 convHull = ogr.Feature(CHsForest.GetLayerDefn())
