@@ -5,7 +5,7 @@ Created on Thu Jan 14 16:49:24 2016
 Description: conveHullComputer.py create convex hulls of treetops triangles,
     computing for each one the coverage ratio of total crown area and sorting
     these into forest and wooden pasture possible areas.
-    
+
 Usage:
 
 Args:
@@ -20,8 +20,8 @@ from osgeo import osr
 from qgis.core import QgsVectorLayer, QgsMapLayerRegistry
 
 # Import custom modules
-
 import spatialIO as spio
+
 
 def main(options):
     print 'Computing convex hulls'
@@ -30,16 +30,15 @@ def main(options):
     initialize(options)
 
     # For direct file input
-    if os.path.isdir(options['src']) == False:
+    if not os.path.isdir(options['src']):
         options['filePath'] = options['src']
         filename = basename(os.path.splitext(options['filePath'])[0])
         processing(options, filename)
 
-
     # For folder input
     if os.path.isdir(options['src']):
         if not options['src'].endswith('/'):
-            options['src'] = options['src'] + '/' 
+            options['src'] = options['src'] + '/'
 
         file_list = os.listdir(options['src'])
         inputDir = options['src']
@@ -56,7 +55,8 @@ def main(options):
     if options["args"]["AddLayer"]:
         vlayer = QgsVectorLayer(options['dst'] + 'shp/' + filename + '_forest_zones.shp', "forest", "ogr")
         QgsMapLayerRegistry.instance().addMapLayer(vlayer)
-    
+
+
 def initialize(options):
     '''
     Prepare the folders for outputs:
@@ -75,33 +75,31 @@ def initialize(options):
         os.makedirs(shpdst)
         print 'output folder ' + shpdst + ' was created'
 
+
 def processing(options, filename):
     '''
     Select trees which are on the contour of the forest and isolated trees.
     '''
-    # Export Grid contour and isolated to crowns values    
-    # forestSelectedPath = options['dst'] + 'tif/' + filename + '_forest_selected.tif'
+    # Export Grid contour and isolated to crowns values
 
-    # Load 
-    # Load ogr driver to read vector files
     driver = ogr.GetDriverByName('ESRI Shapefile')
 
     # Loads treetops selection
     treetopsPath = options['dst'] + 'shp/' + filename + '_treetops_selected.shp'
-    ds_treetops = driver.Open(treetopsPath, 0) # 0 means read-only. 1 means writeable.
+    ds_treetops = driver.Open(treetopsPath, 0)
     treetops = ds_treetops.GetLayer()
 
     # Loads crowns selection
     crownsPath = options['dst'] + 'shp/' + filename + '_crowns_selected.shp'
-    ds_crowns = driver.Open(crownsPath, 0) # 0 means read-only. 1 means writeable.
+    ds_crowns = driver.Open(crownsPath, 0)
     crowns = ds_crowns.GetLayer()
 
     # Loads treetops triangulation
     trianglesPath = options['dst'] + 'shp/' + filename + '_treetops_triangles.shp'
-    ds_triangles = driver.Open(trianglesPath, 0) # 0 means read-only. 1 means writeable.
+    ds_triangles = driver.Open(trianglesPath, 0)
     triangles = ds_triangles.GetLayer()
 
-    ## Create the new layers to store forest and wooden pasture convex hulls
+    #  Create the new layers to store forest and wooden pasture convex hulls
     CHsForestPath = options['dst'] + 'shp/' + filename + '_convexHulls_forest.shp'
     spio.pathChecker(CHsForestPath)
 
@@ -123,11 +121,11 @@ def processing(options, filename):
 
     # Prepare fields for the forest layer
     CHsForest.CreateField(ogr.FieldDefn('ID', ogr.OFTInteger))
-    
+
     # Prepare fields for the wooden pasture layer
     CHsWoodenPasture.CreateField(ogr.FieldDefn('ID', ogr.OFTInteger))
 
-    ## For each triangle we will compute a convex hull for each crown composing it.
+    # For each triangle we will compute a convex hull for each crown composing it.
     # Create the matching table for crowns
     crown_N = []
 
@@ -137,47 +135,55 @@ def processing(options, filename):
     for tri in triangles:
 
         # Get the corresponding treetop
-        alpha = treetops.GetFeature(int(tri.GetField('POINTA')))  
+        alpha = treetops.GetFeature(int(tri.GetField('POINTA')))
         beta = treetops.GetFeature(int(tri.GetField('POINTB')))
         gamma = treetops.GetFeature(int(tri.GetField('POINTC')))
 
         # Get the corresponding crown
-        crown_alpha = crowns.GetFeature(crown_N.index(alpha.GetField('N')))
-        crown_beta = crowns.GetFeature(crown_N.index(beta.GetField('N')))
-        crown_gamma = crowns.GetFeature(crown_N.index(gamma.GetField('N')))
-
-        # Create the triplet of crowns
+        # TODO: CHECK RESULTS !!!
         geom_collection = ogr.Geometry(ogr.wkbGeometryCollection)
+        crown_count = 0
+        if alpha.GetField('N') in crown_N:
+            crown_alpha = crowns.GetFeature(crown_N.index(alpha.GetField('N')))
+            geom_collection.AddGeometry(crown_alpha.geometry())
+            crown_count += 1
 
-        geom_collection.AddGeometry(crown_alpha.geometry())
-        geom_collection.AddGeometry(crown_beta.geometry())
-        geom_collection.AddGeometry(crown_gamma.geometry())
+        if beta.GetField('N') in crown_N:
+            crown_beta = crowns.GetFeature(crown_N.index(beta.GetField('N')))
+            geom_collection.AddGeometry(crown_beta.geometry())
+            crown_count += 1
+        if gamma.GetField('N') in crown_N:
+            crown_gamma = crowns.GetFeature(crown_N.index(gamma.GetField('N')))
+            geom_collection.AddGeometry(crown_gamma.geometry())
+            crown_count += 1
 
-        convex_hull = geom_collection.ConvexHull()
+        if crown_count == 3:
+            # Create the triplet of crowns
+            convex_hull = geom_collection.ConvexHull()
 
-        # Compute the triplet metrics and the coverage ratio
-        conv_area = ogr.Geometry.Area(convex_hull)
-        crowns_area = ogr.Geometry.Area(geom_collection)
+            # Compute the triplet metrics and the coverage ratio
+            conv_area = ogr.Geometry.Area(convex_hull)
+            crowns_area = ogr.Geometry.Area(geom_collection)
 
-        ratio = crowns_area / conv_area
+            ratio = crowns_area / conv_area
 
-        # Store the Convex Hulls in the corresponding category 
-        forestRatio = 0.9
-        WoodenPastureRatio = 0.3
+            # Store the Convex Hulls in the corresponding category
+            forestRatio = 0.9 # THIS SHOULD NOT BE HERE!!!!!
+            WoodenPastureRatio = 0.3 # THIS SHOULD NOT BE HERE!!!!!
 
-        if ratio > forestRatio:
-            convHull = ogr.Feature(CHsForest.GetLayerDefn())
-            convHull.SetField('ID', int(tri.GetFID()))
-            convHull.SetGeometry(convex_hull)
-            CHsForest.CreateFeature(convHull)
-            convHull.Destroy()
+            if ratio > forestRatio:
+                convHull = ogr.Feature(CHsForest.GetLayerDefn())
+                convHull.SetField('ID', int(tri.GetFID()))
+                convHull.SetGeometry(convex_hull)
+                CHsForest.CreateFeature(convHull)
+                convHull.Destroy()
 
-        elif ratio > WoodenPastureRatio:
-            convHull = ogr.Feature(CHsWoodenPasture.GetLayerDefn())
-            convHull.SetField('ID', int(tri.GetFID()))
-            convHull.SetGeometry(convex_hull)
-            CHsWoodenPasture.CreateFeature(convHull)
-            convHull.Destroy()
+            elif ratio > WoodenPastureRatio:
+                convHull = ogr.Feature(CHsWoodenPasture.GetLayerDefn())
+                convHull.SetField('ID', int(tri.GetFID()))
+                convHull.SetGeometry(convex_hull)
+                CHsWoodenPasture.CreateFeature(convHull)
+                convHull.Destroy()
 
     ds_treetops.Destroy()
     ds_crowns.Destroy()
@@ -188,8 +194,3 @@ def processing(options, filename):
 
 if __name__ == "__main__":
     main(options)
-
-__author__ = "SFFN/APM"
-__license__ = "GPL"
-__version__ = "0.1.0"
-__status__ = "Development"

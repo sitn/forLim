@@ -1,22 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Jan 13 07:48:54 2016
 
-Author: SFFN/APM
 
-Description: treeSelector.py selects the crowns and treetops of interest and
-    filter theses to extract isolated trees from forest or wooden pasture
-    patterns. Resulting selected trees and crowns are stored as point and
-    polygon shapefiles. This requires the qgis.core and PyQt4 librairies and
-    the QGIS processing toolbox (installed by default).
-
-Usage:
-
-Args:
-
-Example:
-
-"""
 import os
 from os.path import basename
 from osgeo import ogr
@@ -125,7 +109,7 @@ def processing(options, filename):
     # Loads new crowns layer in edit mode
     driver = ogr.GetDriverByName('ESRI Shapefile')
 
-    ds_crownsStats = driver.Open(crownsStatsPath, 1) # 0 means read-only. 1 means writeable.
+    ds_crownsStats = driver.Open(crownsStatsPath, 1)
     crowns = ds_crownsStats.GetLayer()
 
     layerDefinition = crowns.GetLayerDefn()
@@ -133,15 +117,6 @@ def processing(options, filename):
     # Find FID of each unselected crown and remove it from the new crown layer
     selected_array = []
     unselected_array = []
-
-    # for feature in crowns:
-    #     f_index = feature.GetFieldIndex("N")
-    #
-    #     if feature.GetField(f_index) == 1:
-    #         selected_array.append(feature.GetField("N"))
-    #     else:
-    #         unselected_array.append(feature.GetField("N"))
-    #         crowns.DeleteFeature(feature.GetFID())
 
     for feature in crowns:
         if feature.GetField(1) != 1: # TODO: CHECK THAT!!!
@@ -152,12 +127,9 @@ def processing(options, filename):
             crowns.DeleteFeature(feature.GetFID())
 
     ds_crownsStats.Destroy()
-
-    ## Select Treetops features with contour or isolated values (matching crowns)
-    # Loads the treetops layer in edit mode
     treetopsPath = options['dst'] + 'shp/' + filename + '_treetops.shp'
 
-    ds_treetops = driver.Open(treetopsPath, 1) # 0 means read-only. 1 means writeable.
+    ds_treetops = driver.Open(treetopsPath, 1)
     treetops = ds_treetops.GetLayer()
 
     # remove the unselected FIDs
@@ -168,9 +140,7 @@ def processing(options, filename):
     # Clear dataSources
     ds_treetops.Destroy()
 
-    # CLear arrays
-    selected_array = []
-    unselected_array = []
+
     treetopsSelectedPath = options['dst'] + 'shp/' + filename + '_treetops_selected.shp'
     crownsSelectedPath = options['dst']+ 'shp/' + filename + '_crowns_selected.shp'
     treetopsTrianglesPath = options['dst'] + 'shp/' + filename + '_treetops_triangles.shp'
@@ -188,8 +158,3 @@ def processing(options, filename):
 if __name__ == "__main__":
 
     main(options)
-
-__author__ = "SFFN/APM"
-__license__ = "GPL"
-__version__ = "0.1.0"
-__status__ = "Development"

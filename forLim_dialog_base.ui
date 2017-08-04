@@ -1022,7 +1022,7 @@
              </font>
             </property>
             <property name="text">
-             <string>0.01</string>
+             <string>0.3</string>
             </property>
             <property name="maxLength">
              <number>4</number>
