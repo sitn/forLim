@@ -13,7 +13,6 @@ import spatialIO as spio
 
 
 def main(options):
-    print 'Computing forest shapes'
 
     # Prepare the folders for outputs:
     initialize(options)
@@ -28,6 +27,7 @@ def main(options):
         export(options, filename, forest_mask, forest_zones, forest_outline,
                forest_isolated, forest_selected)
 
+
     # For folder input
     if os.path.isdir(options['src']):
         if not options['src'].endswith('/'):
@@ -40,7 +40,6 @@ def main(options):
         for k, file_list in enumerate(file_list):
             # File checker
             if file_list.lower().endswith('.tif'):
-                print('Processing file ' + file_list)
                 options['filePath'] = inputDir + file_list
                 filename = basename(os.path.splitext(options['filePath'])[0])
 
@@ -59,17 +58,14 @@ def initialize(options):
 
     if not os.path.isdir(options['dst']):
         os.mkdir(options['dst'])
-        print 'output folder was created'
     if not options['dst'].endswith('/'):
         options['dst'] = options['dst'] + '/'
     tifdst = options['dst'] + 'tif'
     if not os.path.exists(tifdst):
         os.makedirs(tifdst)
-        print 'output folder ' + tifdst + ' was created'
-    shpdst = options['dst'] + 'shp'
+        shpdst = options['dst'] + 'shp'
     if not os.path.exists(shpdst):
         os.makedirs(shpdst)
-        print 'output folder ' + shpdst + ' was created'
 
 
 def processing(options):
@@ -148,7 +144,8 @@ def filterElementsBySize(elements, size):
     valid_match_feat_ID = np.setdiff1d(match_feat_ID, [0, num_features])
 
     # ORing operation
-    elements_new = np.in1d(labeled_array, valid_match_feat_ID).reshape(labeled_array.shape)
+    elements_new = np.in1d(labeled_array, valid_match_feat_ID
+                           ).reshape(labeled_array.shape)
 
     return elements_new
 
@@ -157,7 +154,6 @@ def export(options, filename, forest_mask, forest_zones, forest_outline, forest_
     '''
     Export the results to files
     '''
-    print "Exporting results to file"
     # export raster results
     forest_maskPath = options['dst'] + 'tif/' + filename + '_forest_mask.tif'
     spio.rasterWriter(forest_mask, forest_maskPath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
