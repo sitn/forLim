@@ -1,26 +1,8 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Dec 07 08:54:39 2015
 
-Author: SFFN/APM
-
-Description:
-
-treeDetectCrowns.py detects tree crowns in a raster canopy height model (CHM)
-using the watershed algorithm from numpy and the tree tops as markers.
-
-Usage:
-
-Args:
-
-Example:
-
-"""
 import os
 from os.path import basename
 from osgeo import gdal
-from osgeo import ogr
-from osgeo import gdalconst
 import numpy as np
 import scipy.ndimage
 
