@@ -20,10 +20,10 @@ if inqgis:
     from qgis.gui import *
     from processing import runalg
 else:
-    # Load required libraries to run from python (!Unstable!)
-    # See http:/gis.stackexchange.com/questions/129915/cannot-run-standalone-qgis-script
-    # for any improvements
-    import os, sys, glob
+
+    import os
+    import sys
+    import glob
     # Prepare the environment
     from qgis.core import *
     from PyQt4.QtGui import *
@@ -32,7 +32,7 @@ else:
     home = expanduser("~")
 
     # Prepare processing framework
-    sys.path.append( home + '\.qgis2\python\plugins' )
+    sys.path.append(home + '\.qgis2\python\plugins')
     from processing.core.Processing import Processing
     Processing.initialize()
     from processing.tools import *
@@ -45,30 +45,28 @@ def main(options):
     initialize(options)
 
     # For direct file input
-    if os.path.isdir(options['src']) == False:
+    if not os.path.isdir(options['src']):
         print("SINGLE FILE INPUT")
         options['filePath'] = options['src']
         filename = basename(os.path.splitext(options['filePath'])[0])
         processing(options, filename)
 
-    # # For folder input
-    # if os.path.isdir(options['src']):
-    #     if not options['src'].endswith('/'):
-    #         options['src'] = options['src'] + '/'
-    #
-    #     file_list = os.listdir(options['src'])
-    #     inputDir = options['src']
-    #
-    #     # Iterate each file for processing and exports
-    #     for k, file_list in enumerate(file_list):
-    #         print('Processing file ' + file_list)
-    #         options['filePath'] = inputDir + file_list
-    #         filename = basename(os.path.splitext(options['filePath'])[0])
-    #
-    #         # Process each file
-    #         processing(options, filename)
+    # For folder input
+    if os.path.isdir(options['src']):
+        if not options['src'].endswith('/'):
+            options['src'] = options['src'] + '/'
 
-    print 'Selecting trees operation complete'
+        file_list = os.listdir(options['src'])
+        inputDir = options['src']
+
+        # Iterate each file for processing and exports
+        for k, file_list in enumerate(file_list):
+            print('Processing file ' + file_list)
+            options['filePath'] = inputDir + file_list
+            filename = basename(os.path.splitext(options['filePath'])[0])
+
+            # Process each file
+            processing(options, filename)
 
 
 def initialize(options):
@@ -95,17 +93,22 @@ def processing(options, filename):
     Select trees which are on the contour of the forest and isolated trees.
     '''
     # Export Grid contour and isolated to crowns values
-    forestSelectedPath = options['dst'] + 'tif/' + filename + '_forest_selected.tif'
+    forestSelectedPath = options['dst'] + 'tif/' + filename + \
+        '_forest_selected.tif'
     crownsPath = options['dst'] + 'shp/' + filename + '_crowns.shp'
     crownsStatsPath = options['dst'] + 'shp/' + filename + '_crowns_stats.shp'
     print(crownsStatsPath)
-    # WHICH STAT HAS TO BE CALCULATED ???
+    # TODO: WHICH STAT HAS TO BE CALCULATED ???
     if options['plugin']:
-        runalg('saga:gridstatisticsforpolygons', forestSelectedPath, crownsPath, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, crownsStatsPath)
-    # else:
-    #     general.runalg('saga:gridstatisticsforpolygons', forestSelectedPath, crownsPath, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, crownsStatsPath)
+        runalg('saga:gridstatisticsforpolygons', forestSelectedPath,
+               crownsPath, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, crownsStatsPath)
+    else:
+        general.runalg('saga:gridstatisticsforpolygons', forestSelectedPath,
+                       crownsPath, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+                       crownsStatsPath)
 
-    ## Select Crown features with contour or isolated values
+    # Select Crown features with contour or isolated values
+
     # Loads new crowns layer in edit mode
     driver = ogr.GetDriverByName('ESRI Shapefile')
 
@@ -119,9 +122,8 @@ def processing(options, filename):
     unselected_array = []
 
     for feature in crowns:
-        if feature.GetField(1) != 1: # TODO: CHECK THAT!!!
+        if feature.GetField(1) != 1:  # TODO: CHECK THAT THIS IS CORECT!!!
             selected_array.append(feature.GetField("N"))
-
         else:
             unselected_array.append(feature.GetField("N"))
             crowns.DeleteFeature(feature.GetFID())
@@ -146,14 +148,22 @@ def processing(options, filename):
     treetopsTrianglesPath = options['dst'] + 'shp/' + filename + '_treetops_triangles.shp'
 
     if options['plugin']:
-        runalg('qgis:advancedpythonfieldcalculator', treetopsPath, 'N', 0, 10, 0, '', 'value = $id +1', treetopsSelectedPath)
-        runalg('qgis:advancedpythonfieldcalculator', crownsStatsPath, 'ROW', 0, 10, 0, '', 'value = $id', crownsSelectedPath)
-        runalg('qgis:delaunaytriangulation', treetopsSelectedPath, treetopsTrianglesPath)
+        runalg('qgis:advancedpythonfieldcalculator', treetopsPath,
+               'N', 0, 10, 0, '', 'value = $id +1', treetopsSelectedPath)
+        runalg('qgis:advancedpythonfieldcalculator', crownsStatsPath,
+               'ROW', 0, 10, 0, '', 'value = $id', crownsSelectedPath)
+        runalg('qgis:delaunaytriangulation',
+               treetopsSelectedPath, treetopsTrianglesPath)
 
     else:
-        general.runalg('qgis:advancedpythonfieldcalculator', treetopsPath, 'N', 0, 10, 0, '', 'value = $id +1', treetopsSelectedPath)
-        general.runalg('qgis:advancedpythonfieldcalculator', crownsStatsPath, 'ROW', 0, 10, 0, '', 'value = $id', crownsSelectedPath)
-        general.runalg('qgis:delaunaytriangulation', treetopsSelectedPath, treetopsTrianglesPath)
+        general.runalg('qgis:advancedpythonfieldcalculator', treetopsPath,
+                       'N', 0, 10, 0, '', 'value = $id +1',
+                       treetopsSelectedPath)
+        general.runalg('qgis:advancedpythonfieldcalculator', crownsStatsPath,
+                       'ROW', 0, 10, 0, '', 'value = $id', crownsSelectedPath)
+        general.runalg('qgis:delaunaytriangulation', treetopsSelectedPath,
+                       treetopsTrianglesPath)
+
 
 if __name__ == "__main__":
 
