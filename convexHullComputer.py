@@ -102,7 +102,8 @@ def processing(options, filename):
 
     # Create layers
     CHsForest = ds_CHsForest.CreateLayer("forest", srs, ogr.wkbPolygon)
-    CHsWoodenPasture = ds_CHsWoodenPasture.CreateLayer("wooden_pasture", srs, ogr.wkbPolygon)
+    CHsWoodenPasture = ds_CHsWoodenPasture.CreateLayer("wooden_pasture",
+                                                       srs, ogr.wkbPolygon)
 
     # Prepare fields for the forest layer
     CHsForest.CreateField(ogr.FieldDefn('ID', ogr.OFTInteger))
