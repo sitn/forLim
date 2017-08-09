@@ -40,7 +40,8 @@ def main(options):
             processing(options, filename)
 
     if options["args"]["AddLayer"]:
-        vlayer = QgsVectorLayer(options['dst'] + 'shp/' + filename + '_forest_zones.shp', "forest", "ogr")
+        vlayer = QgsVectorLayer(options['dst'] + 'shp/' + filename +
+                                '_forest_zones.shp', "forest", "ogr")
         QgsMapLayerRegistry.instance().addMapLayer(vlayer)
 
 
@@ -60,35 +61,35 @@ def initialize(options):
         os.makedirs(shpdst)
 
 
-def processing(options, filename):
+def processing(options, f):
     '''
     Select trees which are on the contour of the forest and isolated trees.
     '''
     # Export Grid contour and isolated to crowns values
     print(options)
-    return
     driver = ogr.GetDriverByName('ESRI Shapefile')
 
     # Loads treetops selection
-    treetopsPath = options['dst'] + 'shp/' + filename + '_treetops_selected.shp'
+    treetopsPath = options['dst'] + 'shp/' + f + '_treetops_selected.shp'
     ds_treetops = driver.Open(treetopsPath, 0)
     treetops = ds_treetops.GetLayer()
 
     # Loads crowns selection
-    crownsPath = options['dst'] + 'shp/' + filename + '_crowns_selected.shp'
+    crownsPath = options['dst'] + 'shp/' + f + '_crowns_selected.shp'
     ds_crowns = driver.Open(crownsPath, 0)
     crowns = ds_crowns.GetLayer()
 
     # Loads treetops triangulation
-    trianglesPath = options['dst'] + 'shp/' + filename + '_treetops_triangles.shp'
+    trianglesPath = options['dst'] + 'shp/' + f + '_treetops_triangles.shp'
     ds_triangles = driver.Open(trianglesPath, 0)
     triangles = ds_triangles.GetLayer()
 
     #  Create the new layers to store forest and wooden pasture convex hulls
-    CHsForestPath = options['dst'] + 'shp/' + filename + '_convexHulls_forest.shp'
+    CHsForestPath = options['dst'] + 'shp/' + f + '_convexHulls_forest.shp'
     spio.pathChecker(CHsForestPath)
 
-    CHsWoodenPasturePath = options['dst'] + 'shp/' + filename + '_convexHulls_wooden_pasture.shp'
+    CHsWoodenPasturePath = options['dst'] + 'shp/' + f + \
+        '_convexHulls_wooden_pasture.shp'
     spio.pathChecker(CHsWoodenPasturePath)
 
     # Create the convex hulls forest data source
@@ -117,6 +118,10 @@ def processing(options, filename):
     crown_N = []
     for crown in crowns:
         crown_N.append(crown.GetField('N'))
+
+    forestRatio = options['forestRatio']
+    WoodenPastureRatio = options['woodenPastureRatio']
+    print(forestRatio, WoodenPastureRatio)
 
     for tri in triangles:
 
@@ -152,24 +157,21 @@ def processing(options, filename):
             crowns_area = ogr.Geometry.Area(geom_collection)
 
             ratio = crowns_area / conv_area
-
             # Store the Convex Hulls in the corresponding category
-            forestRatio = options['forestRatio']
-            WoodenPastureRatio = options['woodenPastureRatio']
 
-            if ratio > forestRatio:
-                convHull = ogr.Feature(CHsForest.GetLayerDefn())
-                convHull.SetField('ID', int(tri.GetFID()))
-                convHull.SetGeometry(convex_hull)
-                CHsForest.CreateFeature(convHull)
-                convHull.Destroy()
+            # if ratio > forestRatio:
+            convHull = ogr.Feature(CHsForest.GetLayerDefn())
+            convHull.SetField('ID', int(tri.GetFID()))
+            convHull.SetGeometry(convex_hull)
+            CHsForest.CreateFeature(convHull)
+            convHull.Destroy()
 
-            elif ratio > WoodenPastureRatio:
-                convHull = ogr.Feature(CHsWoodenPasture.GetLayerDefn())
-                convHull.SetField('ID', int(tri.GetFID()))
-                convHull.SetGeometry(convex_hull)
-                CHsWoodenPasture.CreateFeature(convHull)
-                convHull.Destroy()
+            # elif ratio > WoodenPastureRatio:
+            #     convHull = ogr.Feature(CHsWoodenPasture.GetLayerDefn())
+            #     convHull.SetField('ID', int(tri.GetFID()))
+            #     convHull.SetGeometry(convex_hull)
+            #     CHsWoodenPasture.CreateFeature(convHull)
+            #     convHull.Destroy()
 
     ds_treetops.Destroy()
     ds_crowns.Destroy()
