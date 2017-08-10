@@ -94,7 +94,6 @@ def processing(options):
 
     # Remove the small forest islands which are to small to be considered
     # as forest zones
-    print(options['MinAreaThres'])
 
     forest_mask = holes < 1
     forest_zones = filterElementsBySize(forest_mask, options['MinAreaThres'])
