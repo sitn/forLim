@@ -157,7 +157,6 @@ def processing(options, f):
             crowns_area = ogr.Geometry.Area(geom_collection)
 
             ratio = crowns_area / conv_area
-            ratios.append(ratio)
             # Store the Convex Hulls in the corresponding category
             if ratio > forestRatio:
                 convHull = ogr.Feature(CHsForest.GetLayerDefn())
