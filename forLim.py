@@ -13,9 +13,7 @@ import resources_rc
 from forLim_dialog import forLimDialog
 from datetime import datetime
 from osgeo import ogr
-import delaunayMethod
-import Overlap_fct
-import merge_fct
+from .delaunay import delaunayMethod
 from processing import runalg
 import os
 from uuid import uuid4 as uuid4
