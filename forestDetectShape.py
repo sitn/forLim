@@ -27,8 +27,6 @@ def main(options):
         export(options, filename, forest_mask, forest_zones, forest_outline,
                forest_isolated, forest_selected)
 
-
-    # For folder input
     if os.path.isdir(options['src']):
         if not options['src'].endswith('/'):
             options['src'] = options['src'] + '/'
@@ -90,11 +88,14 @@ def processing(options):
     forest_mask = data > 0
 
     # Fill the small holes which are to small to be considered as clearings
+    print(options['MaxAreaThres'])
     holes = forest_mask < 1
     holes = filterElementsBySize(holes, options['MaxAreaThres'])
 
     # Remove the small forest islands which are to small to be considered
     # as forest zones
+    print(options['MinAreaThres'])
+
     forest_mask = holes < 1
     forest_zones = filterElementsBySize(forest_mask, options['MinAreaThres'])
 

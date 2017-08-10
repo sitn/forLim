@@ -528,9 +528,9 @@ class forLim:
                         'src': str(args['Path_input']),
                         'dst': str(args['Path_output']),
                         'MinAreaThres': int(args['MinAreaThres']),
-                        'MaxAreaThres': 2500,
-                        'forestRatio': 0.8,
-                        'woodenPastureRatio': 0.3,
+                        'MaxAreaThres': int(args['HoleSizeThres']),
+                        'forestRatio': int(args['Deg_Recouv_FD']),
+                        'woodenPastureRatio': int(args['Deg_Recouv_PB']),
                         'plugin': True,
                         'args': args
                     }
@@ -918,8 +918,10 @@ class forLim:
                         QgsMapLayerRegistry.instance().addMapLayer(vlayer)
 
                         forest = {
-                            'Foret dense':      (QColor(0,100,0), 'Foret dense'),
-                            'Paturage boise':   (QColor(0,160,0), 'Paturage boise')
+                            'Foret dense':      (QColor(0, 100, 0),
+                                                 'Foret dense'),
+                            'Paturage boise':   (QColor(0, 160, 0),
+                                                 'Paturage boise')
                         }
 
                         # create a category for each item in animals

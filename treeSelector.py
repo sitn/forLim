@@ -92,7 +92,7 @@ def processing(options, f):
     layerDefinition = crowns.GetLayerDefn()
 
     #  Filter out tree at the forest limit
-    # Find FID of each unselected crown and remove it from the new crown layer
+    # Find FID of each unselected crown and remove it
     selected_array = []
     unselected_array = []
 
@@ -124,9 +124,13 @@ def processing(options, f):
         '_treetops_triangles.shp'
 
     runalg('qgis:advancedpythonfieldcalculator', treetopsPath,
-           'N', 0, 10, 0, '', 'value = $id +1', treetopsSelectedPath)
-    runalg('qgis:advancedpythonfieldcalculator', crownsStatsPath,
-           'ROW', 0, 10, 0, '', 'value = $id', crownsSelectedPath)
+           'N', 0, 10, 0, '', 'value = $id', treetopsSelectedPath)
+    # runalg('qgis:advancedpythonfieldcalculator', crownsStatsPath,
+    #        'ROW', 0, 10, 0, '', 'value = $id', crownsSelectedPath)
+    print(crownsStatsPath, treetopsPath)
+    runalg('qgis:joinattributesbylocation', crownsStatsPath,
+           treetopsSelectedPath, u'contains', 0.0,  0, '', 0,
+           crownsSelectedPath)
     runalg('qgis:delaunaytriangulation',
            treetopsSelectedPath, treetopsTrianglesPath)
 

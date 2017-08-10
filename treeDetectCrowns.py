@@ -11,7 +11,6 @@ import spatialIO as spio
 
 
 def main(options):
-    print 'Computing treecrowns'
 
     # Prepare the folders for outputs:
     initialize(options)
@@ -78,7 +77,7 @@ def processing(options):
     '''
     print 'Tree crowns calculation in progress'
 
-    # 1 Import Raster and compute Tree tops for markers use
+    # 1 Import Raster
     data, geotransform, prj_wkt = spio.rasterReader(options['filePath'])
 
     # Filter non realstic data
@@ -106,7 +105,7 @@ def processing(options):
 
     # 2 Computes Watershed segmentation
 
-    # to omit precision loss during int16 conversion
+    # prevent precision loss during int16 conversion
     data = data * 1000
 
     # labels the non forest zone with -99999
