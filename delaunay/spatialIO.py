@@ -7,21 +7,22 @@ Author: SFFN/APM
 
 Description:
 
-spatialIO.py is a library of methods for spatial data Input / Output in python using the osgeo / gdal / osr / ogr / scipy / numpy libraries
+spatialIO.py is a library of methods for spatial data Input /
+Output in python using the osgeo / gdal / osr / ogr / scipy / numpy libraries
 
 Usage:
 
     import spatialIO as spio
-    
+
     # To read raster :
     data, geotransform, prj_wkt = spio.rasterReader(rasterPath)
-    
+
     # To write raster
     spio.rasterWriter(band, rasterPath, geotransform, prj_wkt, gdalformat)
-    
+
     # To write point shapefile
     spio.pointShpWriter(pointPath, spatialRefWKT, x, y, attribute, label)
-    
+
 
 Input Args:
 
@@ -29,7 +30,7 @@ Input Args:
     band: numpy array of shape m x n
     geotransform: requested geotransform
     prj_wkt: projection in wkt
-    gdalformat: requested gdal format 
+    gdalformat: requested gdal format
 
 Example:
 
@@ -37,9 +38,10 @@ Example:
 
     data2, geotransform2, prj_wkt2 = spio.rasterReader(input_filename_01)
 
-    spio.rasterWriter(forest_isolated, output_filename_01, geotransform2, prj_wkt2, gdal.GDT_Byte) 
+    spio.rasterWriter(forest_isolated, output_filename_01, geotransform2,
+    prj_wkt2, gdal.GDT_Byte)
 
-    
+
 """
 
 import os
@@ -57,14 +59,15 @@ import scipy.ndimage
 
 def main():
     '''
-    Usage: 
-    
+    Usage:
+
     import spatialIO as spio
-    
+
     data, geotransform, prj_wkt = spio.rasterReader(rasterPath)
 
     spio.rasterWriter(band, rasterPath, geotransform, prj_wkt, gdalformat)
     '''
+
 
 def pathChecker(path):
     '''
@@ -72,11 +75,11 @@ def pathChecker(path):
     '''
     if os.path.exists(path):
         os.remove(path)
-    
+
 
 def rasterReader(rasterPath):
     '''
-    Reads an a raster and give an array with geotransorm and geoprojection 
+    Reads an a raster and give an array with geotransorm and geoprojection
     ref as output
     '''
     # gdal import raster
@@ -90,15 +93,16 @@ def rasterReader(rasterPath):
     band = dataset.GetRasterBand(1)
     data = band.ReadAsArray(0, 0, dataset.RasterXSize, dataset.RasterYSize)
 
-    return data, geotransform, prj_wkt;
+    return data, geotransform, prj_wkt
 
 
 def rasterWriter(band, rasterPath, geotransform, prj_wkt, gdalformat):
     '''
-    Write an array in a raster with a given path, geotransform and 
+    Write an array in a raster with a given path, geotransform and
     geoprojection ref as input
-    '''    
-    # Can be improve with variable args inputs as geoformat as optional and default
+    '''
+    # Can be improve with variable args inputs as geoformat as optional
+    # and default
     # Mutliple bands or band selector
     # Check if file already exists
     pathChecker(rasterPath)
@@ -106,14 +110,14 @@ def rasterWriter(band, rasterPath, geotransform, prj_wkt, gdalformat):
     # extract array size
     RasterYSize, RasterXSize = band.shape
 
-    #create and write raster file    
+    # create and write raster file
     driver = gdal.GetDriverByName('GTiff')
-    ds = driver.Create(rasterPath, RasterXSize, RasterYSize, 1, gdalformat )
+    ds = driver.Create(rasterPath, RasterXSize, RasterYSize, 1, gdalformat)
     ds.SetProjection(prj_wkt)
     ds.SetGeoTransform(geotransform)
     ds.GetRasterBand(1).WriteArray(band)
 
-    #close raster file
+    # close raster file
     ds = None
 
 
@@ -138,9 +142,9 @@ def pointShpWriter(pointPath, spatialRefWKT, x, y, attribute, label):
     field_height.SetWidth(4)
     field_height.SetPrecision(2)
 
-    layer.CreateField(field_height)    
+    layer.CreateField(field_height)
 
-    geoLocations = np.column_stack((x,y))
+    geoLocations = np.column_stack((x, y))
 
     for pointIndex, geoLocation in enumerate(geoLocations):
         # Create point
@@ -150,7 +154,7 @@ def pointShpWriter(pointPath, spatialRefWKT, x, y, attribute, label):
         feature = ogr.Feature(layer.GetLayerDefn())
         feature.SetGeometry(geometry)
         feature.SetFID(pointIndex)
-        feature.SetField(label,float(attribute[pointIndex]))
+        feature.SetField(label, float(attribute[pointIndex]))
 
         # Save feature
         layer.CreateFeature(feature)
@@ -176,7 +180,7 @@ def polygonizer(rasterPath, maskPath, shapePath):
     # gdal import mask
     if maskPath:
         dsmask = gdal.Open(maskPath, gdalconst.GA_ReadOnly)
-        mask = dataset.GetRasterBand(1)    
+        mask = dataset.GetRasterBand(1)
     else:
         mask = None
 
@@ -193,7 +197,7 @@ def polygonizer(rasterPath, maskPath, shapePath):
     layer.CreateField(newField)
 
     # Polygonize
-    gdal.Polygonize(band, mask, layer, 0, [], callback=None )
+    gdal.Polygonize(band, mask, layer, 0, [], callback=None)
 
     # Destroy features and datasources
     dataset = None
@@ -215,15 +219,17 @@ def rasterizer(shapePath, rasterPath, attribute, gridModelPath):
 
     # Import data from the vector layer
     driver = ogr.GetDriverByName('ESRI Shapefile')
-    vector_source = driver.Open(shapePath,0)
+    vector_source = driver.Open(shapePath, 0)
     source_layer = vector_source.GetLayer(0)
 
-    target_ds = gdal.GetDriverByName( 'MEM' ).Create( "", RasterXSize, RasterYSize, 1, gdal.GDT_Int32)
-    target_ds.SetGeoTransform( geotransform )
-    target_ds.SetProjection( prj_wkt )
+    target_ds = gdal.GetDriverByName('MEM').Create("", RasterXSize,
+                                                   RasterYSize, 1,
+                                                   gdal.GDT_Int32)
+    target_ds.SetGeoTransform(geotransform)
+    target_ds.SetProjection(prj_wkt)
 
     err = gdal.RasterizeLayer(target_ds, [1], source_layer,
-        options=["ATTRIBUTE=%s" % attribute ])
+                              options=["ATTRIBUTE=%s" % attribute])
     if err != 0:
         raise Exception("error rasterizing layer: %s" % err)
     data = target_ds.ReadAsArray()
