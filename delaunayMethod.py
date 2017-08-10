@@ -45,7 +45,6 @@ def processing(options):
     ###################################
     # Select the trees from forest contour and isolated trees
     treeSelector.main(options)
-
     ###################################
     #  4. Convex hulls computation    #
     ###################################

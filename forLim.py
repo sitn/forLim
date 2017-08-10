@@ -1,34 +1,13 @@
 # -*- coding: utf-8 -*-
-"""
-/***************************************************************************
- forLim
-                                 A QGIS plugin
- Determine forest limits
-                              -------------------
-        begin                : 2015-07-30
-        git sha              : https:/github.com/sitn/forLim
-        Authors            : SFFN/MRu, APM
-        founded by           : Etat de Neuchâtel
- ***************************************************************************/
-
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
-"""
+# TODO: selective imports
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
 from qgis.gui import *
 # Initialize Qt resources from file resources.py
-import resources_rc #sets the plugin visible in QGIS
+import resources_rc
 from forLim_dialog import forLimDialog
 from datetime import datetime
-#import shutil
 from osgeo import ogr
 import delaunayMethod
 import Overlap_fct
@@ -76,7 +55,6 @@ class forLim:
         self.toolbar = self.iface.addToolBar(u'forLim')
         self.toolbar.setObjectName(u'forLim')
 
-
     def tr(self, message):
         """Get the translation for a string using Qt translation API.
 
@@ -90,7 +68,6 @@ class forLim:
         """
         return QCoreApplication.translate('forLim', message)
 
-
     def add_action(
         self,
         icon_path,
@@ -101,7 +78,7 @@ class forLim:
         add_to_toolbar=True,
         status_tip=None,
         whats_this=None,
-        parent=None):
+            parent=None):
 
         icon = QIcon(icon_path)
         action = QAction(icon, text, parent)
@@ -131,65 +108,70 @@ class forLim:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        ## Input
-        #Set last path input
+        # Input
         global last_path_input, input_message
         last_path_input = self.dlg.LE_input.text()
         input_message = True
-        #Browser input files
-        QObject.connect(self.dlg.PB_input, SIGNAL("clicked()"), self.select_input_files)
-        #Check input path
-        QObject.connect(self.dlg.LE_input, SIGNAL("editingFinished()"), self.check_input_path)
+        QObject.connect(self.dlg.PB_input, SIGNAL("clicked()"),
+                        self.select_input_files)
+        QObject.connect(self.dlg.LE_input, SIGNAL("editingFinished()"),
+                        self.check_input_path)
 
-        ## Output
-        #Set last path ouput
+        # Output
         global last_path_output, output_message
         last_path_output = self.dlg.LE_output.text()
         output_message = True
-        #Browser output directory
-        QObject.connect(self.dlg.PB_output, SIGNAL("clicked()"), self.select_output_directory)
-        #Check output path
-        QObject.connect(self.dlg.LE_output, SIGNAL("editingFinished()"), self.check_output_path)
+        QObject.connect(self.dlg.PB_output, SIGNAL("clicked()"),
+                        self.select_output_directory)
+        QObject.connect(self.dlg.LE_output, SIGNAL("editingFinished()"),
+                        self.check_output_path)
 
-        #Set OK and quit buttons
-        QObject.connect(self.dlg.PB_quit, SIGNAL("clicked()"), self.quit_plugin)
-        QObject.connect(self.dlg.PB_ok, SIGNAL("clicked()"), self.run)
+        QObject.connect(self.dlg.PB_quit, SIGNAL("clicked()"),
+                        self.quit_plugin)
+        QObject.connect(self.dlg.PB_ok, SIGNAL("clicked()"),
+                        self.run)
 
-        ## Remove menu
-        #Connect remove hedges layer
+        # Remove menu
         self.dlg.widget_hedges.hide()
-        QObject.connect(self.dlg.CB_removeHedges, SIGNAL("clicked()"), self.show_widget_hedges)
-        QObject.connect(self.dlg.PB_hedges, SIGNAL("clicked()"), self.hedges_path)
-        QObject.connect(self.dlg.LE_hedges, SIGNAL("editingFinished()"), self.check_hedges_path)
+        QObject.connect(self.dlg.CB_removeHedges, SIGNAL("clicked()"),
+                        self.show_widget_hedges)
+        QObject.connect(self.dlg.PB_hedges, SIGNAL("clicked()"),
+                        self.hedges_path)
+        QObject.connect(self.dlg.LE_hedges, SIGNAL("editingFinished()"),
+                        self.check_hedges_path)
 
-        #Connect remove polygons layer
         self.dlg.widget_polygons.hide()
-        QObject.connect(self.dlg.CB_removePolygons, SIGNAL("clicked()"), self.show_widget_polygons)
-        QObject.connect(self.dlg.PB_polygons, SIGNAL("clicked()"), self.polygons_path)
-        QObject.connect(self.dlg.LE_polygons, SIGNAL("editingFinished()"), self.check_polygons_path)
+        QObject.connect(self.dlg.CB_removePolygons, SIGNAL("clicked()"),
+                        self.show_widget_polygons)
+        QObject.connect(self.dlg.PB_polygons, SIGNAL("clicked()"),
+                        self.polygons_path)
+        QObject.connect(self.dlg.LE_polygons, SIGNAL("editingFinished()"),
+                        self.check_polygons_path)
 
-        #Connect remove polylines layer
         self.dlg.widget_polylines.hide()
-        QObject.connect(self.dlg.CB_removePolylines, SIGNAL("clicked()"), self.show_widget_polylines)
-        QObject.connect(self.dlg.PB_polylines, SIGNAL("clicked()"), self.polylines_path)
-        QObject.connect(self.dlg.LE_polylines, SIGNAL("editingFinished()"), self.check_polylines_path)
+        QObject.connect(self.dlg.CB_removePolylines, SIGNAL("clicked()"),
+                        self.show_widget_polylines)
+        QObject.connect(self.dlg.PB_polylines, SIGNAL("clicked()"),
+                        self.polylines_path)
+        QObject.connect(self.dlg.LE_polylines, SIGNAL("editingFinished()"),
+                        self.check_polylines_path)
 
-        ## Select Method Menu
-        #Set convolution as default
+        # Select Method Menu
         self.dlg.radio_TR.setChecked(True)
 
-        #Select method
-        QObject.connect(self.dlg.radio_TR, SIGNAL("clicked()"), self.select_tr_method)
-        QObject.connect(self.dlg.radio_FC, SIGNAL("clicked()"), self.select_fc_method)
+        # Select method
+        QObject.connect(self.dlg.radio_TR, SIGNAL("clicked()"),
+                        self.select_tr_method)
+        QObject.connect(self.dlg.radio_FC, SIGNAL("clicked()"),
+                        self.select_fc_method)
 
-        ## Set current window and widget when opening the plugin
-        #Set current widget
+        # Set current window and widget when opening the plugin
         self.dlg.tabWidget.setCurrentIndex(0)
 
-        #Set current line edit
+        # Set current line edit
         self.dlg.LE_input.setFocus()
 
-        #Check validation
+        # Check validation
         self.dlg.LE_minHeightThres.setValidator(QIntValidator())
         self.dlg.LE_maxHeightThres.setValidator(QIntValidator())
         self.dlg.LE_cwDiam.setValidator(QIntValidator())
@@ -203,13 +185,13 @@ class forLim:
         self.dlg.LE_gradConvDiameter.setValidator(QIntValidator())
         self.dlg.LE_minSurfBigElem.setValidator(QIntValidator())
 
-        #set default value of minSurfBigElem
+        # set default value of minSurfBigElem
         self.dlg.LE_minSurfBigElem.setText(self.dlg.LE_minForSurfThres.text())
 
-        #Set add result to canevas as default
+        # Set add result to canevas as default
         self.dlg.CB_addLayer.setCheckState(2)
 
-        #set progress bar settings ??????????????????
+        # set progress bar settings
         self.dlg.progressBar.setMinimum(0)
         self.dlg.progressBar.setValue(0)
 
@@ -220,10 +202,6 @@ class forLim:
             callback=self.run,
             parent=self.iface.mainWindow())
 
-##########################################
-
-### Input
-    #Select input files
     def select_input_files(self):
         filenames = QFileDialog.getOpenFileNames(filter="Images (*.tif)")
         if filenames:
@@ -234,8 +212,6 @@ class forLim:
             if len(filenames) > 1:
                 self.input_message()
 
-
-    #Check input path
     def check_input_path(self):
         global last_path_input
         path_input = self.dlg.LE_input.text()
@@ -245,32 +221,36 @@ class forLim:
             f_exist = True
             for f in files:
                 if not os.path.exists(f):
-                    self.messageBar.pushMessage("Input", "Le champ '" + f + "' n'existe pas.", QgsMessageBar.CRITICAL, 7)
+                    self.messageBar.pushMessage("Input"
+                                                "Le champ '" + f +
+                                                "' n'existe pas.",
+                                                QgsMessageBar.CRITICAL, 7)
                     f_exist = False
             if len(files) > 1 and f_exist and input_message:
                 self.input_message()
-
 
     def input_message(self):
         global input_message
         input_message = False
         QMessageBox.warning(None,
                             "Recouvrement entre les tuiles",
-                            "Attention: un recouvrement d'environ 500 m entre les tuiles est necessaire.\n\nSans ce recouvrement, les effets de bords sont importants.")
+                            "Attention: un recouvrement d'environ 500 m " +
+                            " entre les tuiles est necessaire." +
+                            "\n\nSans ce recouvrement, les effets de bords " +
+                            "sont importants.")
 
-### Output
-    #Select output directory
     def select_output_directory(self):
         self.dlg.LE_output.setFocus()
         folder = QFileDialog.getExistingDirectory()
         if folder:
             if not os.path.exists(folder):
-                self.messageBar.pushMessage("Output", "Le champ 'Dossier Destination' est invalide.", QgsMessageBar.CRITICAL, 7)
+                self.messageBar.pushMessage("Output",
+                                            "Le champ 'Dossier Destination '" +
+                                            "est invalide.",
+                                            QgsMessageBar.CRITICAL, 7)
             else:
                 self.dlg.LE_output.setText(folder)
 
-
-    #Check if path exists and if it contains building folders
     def check_output_path(self):
         path_output = self.dlg.LE_output.text()
         global last_path_output
@@ -278,59 +258,58 @@ class forLim:
             if os.path.exists(path_output):
                 last_path_output = path_output
             elif path_output:
-                self.messageBar.pushMessage("Attention", "Le champ 'Dossier Destination' est invalide.", QgsMessageBar.CRITICAL, 7)
+                self.messageBar.pushMessage("Attention",
+                                            "Le champ 'Dossier Destination' " +
+                                            "est invalide.",
+                                            QgsMessageBar.CRITICAL, 7)
 
-
-    ### Hedges
-    #Show widget_hedges
     def show_widget_hedges(self):
-        if self.dlg.CB_removeHedges.isChecked() == True:
+        if self.dlg.CB_removeHedges.isChecked():
             self.dlg.widget_hedges.show()
             self.dlg.LE_hedges.setFocus()
-        if self.dlg.CB_removeHedges.isChecked() == False:
+        if not self.dlg.CB_removeHedges.isChecked():
             self.dlg.widget_hedges.hide()
 
-
-    #Hedges path button
     def hedges_path(self):
         geom = QFileDialog.getOpenFileName(filter="*.shp")
         if geom:
             ds = ogr.Open(geom)
             layer = ds.GetLayer()
             if layer.GetGeomType() != 2:
-                self.messageBar.pushMessage("Fichier haies", "Le fichier specifie ne contient pas de polyligne.", QgsMessageBar.CRITICAL, 7)
+                self.messageBar.pushMessage("Fichier haies",
+                                            "Le fichier specifie ne " +
+                                            "contient pas de polyligne.",
+                                            QgsMessageBar.CRITICAL, 7)
             else:
                 self.dlg.LE_hedges.setText(geom)
                 self.check_hedges_path()
 
-
-    #Hedges path validate and load fields
     def check_hedges_path(self):
         path_hedges = self.dlg.LE_hedges.text()
         if path_hedges:
-            if os.path.exists(path_hedges) and path_hedges.split(".")[-1] == "shp":
+            if os.path.exists(path_hedges) and \
+               path_hedges.split(".")[-1] == "shp":
                 source = ogr.Open(path_hedges, 0)
                 layer = source.GetLayer()
                 layer_defn = layer.GetLayerDefn()
 
-                field_names = []
-                type_names = ["Real","Integer"]
+                f_names = []
+                type_names = ["Real", "Integer"]
                 for i in range(layer_defn.GetFieldCount()):
                     if layer_defn.GetFieldDefn(i).GetTypeName() in type_names:
-                        field_names.append(layer_defn.GetFieldDefn(i).GetName())
+                        f_names.append(layer_defn.GetFieldDefn(i).GetName())
 
-                #define Combo Box for attribute choice
+                # define Combo Box for attribute choice
                 self.dlg.CBox_hedgesBuffer.clear()
                 self.dlg.CBox_hedgesBuffer.addItems(field_names)
             else:
                 self.dlg.CBox_hedgesBuffer.clear()
-                self.messageBar.pushMessage("Fichier haies", "Le fichier specifie n'existe pas", QgsMessageBar.CRITICAL, 7)
+                self.messageBar.pushMessage("Fichier haies",
+                                            "Le fichier specifie n'existe pas",
+                                            QgsMessageBar.CRITICAL, 7)
         else:
             self.dlg.CBox_hedgesBuffer.clear()
 
-
-### Polygons
-    #Show widget_polygons
     def show_widget_polygons(self):
         if self.dlg.CB_removePolygons.isChecked():
             self.dlg.widget_polygons.show()
@@ -338,28 +317,28 @@ class forLim:
         else:
             self.dlg.widget_polygons.hide()
 
-
-    #Polygons path button
     def polygons_path(self):
         geom = QFileDialog.getOpenFileName(filter="*.shp")
         if geom:
             ds = ogr.Open(geom)
             layer = ds.GetLayer()
             if layer.GetGeomType() != 3:
-                self.messageBar.pushMessage("Fichier polygones", "Le fichier specifie ne contient pas de polygone.", QgsMessageBar.CRITICAL, 7)
+                self.messageBar.pushMessage("Fichier polygones",
+                                            "Le fichier specifie ne contient" +
+                                            " pas de polygone.",
+                                            QgsMessageBar.CRITICAL, 7)
             else:
                 self.dlg.LE_polygons.setText(geom)
 
-
-    #Check polygons path
     def check_polygons_path(self):
         path = self.dlg.LE_polygons.text()
         if path:
             if not os.path.exists(path):
-                self.messageBar.pushMessage("Fichier polygones", "Le fichier specifie n'existe pas.", QgsMessageBar.CRITICAL, 7)
+                self.messageBar.pushMessage("Fichier polygones",
+                                            "Le fichier specifie" +
+                                            "n'existe pas.",
+                                            QgsMessageBar.CRITICAL, 7)
 
-
-    #Show widget_polylines
     def show_widget_polylines(self):
         if self.dlg.CB_removePolylines.isChecked():
             self.dlg.widget_polylines.show()
@@ -367,44 +346,46 @@ class forLim:
         else:
             self.dlg.widget_polylines.hide()
 
-
-    #Polylines path button
     def polylines_path(self):
         geom = QFileDialog.getOpenFileName(filter="*.shp")
         if geom:
             ds = ogr.Open(geom)
             layer = ds.GetLayer()
             if layer.GetGeomType() != 2:
-                self.messageBar.pushMessage("Fichier polylignes", "Le fichier specifie ne contient pas de polyligne.", QgsMessageBar.CRITICAL, 7)
+                self.messageBar.pushMessage("Fichier polylignes",
+                                            "Le fichier specifie ne contient" +
+                                            " pas de polyligne.",
+                                            QgsMessageBar.CRITICAL, 7)
             else:
                 self.dlg.LE_polylines.setText(geom)
                 self.check_polylines_path()
 
-
-    #Check polylines path and load fields
     def check_polylines_path(self):
         path_polylines = self.dlg.LE_polylines.text()
         if path_polylines:
-            if os.path.exists(path_polylines) and path_polylines.split(".")[-1] == "shp":
+            if os.path.exists(path_polylines) and \
+               path_polylines.split(".")[-1] == "shp":
                 source = ogr.Open(path_polylines, 0)
                 layer = source.GetLayer()
                 layer_defn = layer.GetLayerDefn()
 
-                field_names = []
-                type_names = ["Real","Integer"]
+                f_names = []
+                type_names = ["Real", "Integer"]
                 for i in range(layer_defn.GetFieldCount()):
                     if layer_defn.GetFieldDefn(i).GetTypeName() in type_names:
-                        field_names.append(layer_defn.GetFieldDefn(i).GetName())
+                        f_names.append(layer_defn.GetFieldDefn(i).GetName())
 
                 self.dlg.CBox_polylinesBuffer.clear()
                 self.dlg.CBox_polylinesBuffer.addItems(field_names)
             else:
                 self.dlg.CBox_polylinesBuffer.clear()
-                self.messageBar.pushMessage("Fichier polylignes", "Le fichier specifie n'existe pas.", QgsMessageBar.CRITICAL, 7)
+                self.messageBar.pushMessage("Fichier polylignes",
+                                            "Le fichier specifie " +
+                                            " n'existe pas.",
+                                            QgsMessageBar.CRITICAL, 7)
         else:
             self.dlg.CBox_polylinesBuffer.clear()
 
-    # Choose Convolution window (FC) or Delaunay's Triangulation (TR)
     def select_tr_method(self):
         if self.dlg.radio_TR.isChecked():
             print "TR method is selected"
@@ -414,7 +395,6 @@ class forLim:
             self.dlg.label_29.hide()
             self.dlg.LE_gradConvDiameter.hide()
             self.dlg.label_28.hide()
-
 
     def select_fc_method(self):
         if self.dlg.radio_FC.isChecked():
@@ -426,11 +406,8 @@ class forLim:
             self.dlg.LE_gradConvDiameter.show()
             self.dlg.label_28.show()
 
-
-    #Quit plugin
     def quit_plugin(self):
         self.dlg.close()
-
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -439,9 +416,7 @@ class forLim:
                 self.tr(u'&forLim'),
                 action)
             self.iface.removeToolBarIcon(action)
-        # remove the toolbar
         del self.toolbar
-
 
     def run(self):
         """Run method that performs all the real work"""
@@ -457,29 +432,40 @@ class forLim:
             error_msg = str()
 
             if not self.dlg.LE_input.text():
-                error_msg = error_msg + "Ajouter un chemin d'acces au(x) fichier(s) source.\n\n"
+                error_msg = error_msg + "Ajouter un chemin d'acces " + \
+                            "au(x) fichier(s) source.\n\n"
                 c = True
             if not self.dlg.LE_output.text():
-                error_msg = error_msg + "Ajouter un chemin d'acces pour le dossier de destination ou seront déposes les fichiers produits.\n\n"
+                error_msg = error_msg + "Ajouter un chemin d'acces pour " + \
+                            "le dossier de destination ou seront déposes " + \
+                            "les fichiers produits.\n\n"
                 c = True
-            if self.dlg.CB_removeHedges.isChecked() and not self.dlg.LE_hedges.text():
-                error_msg = error_msg + "Completer ou fermer la rubrique des haies.\n\n"
+            if self.dlg.CB_removeHedges.isChecked() and not \
+               self.dlg.LE_hedges.text():
+                error_msg = error_msg + "Completer ou fermer " + \
+                            "la rubrique des haies.\n\n"
                 c = True
-            if self.dlg.CB_removePolylines.isChecked() and not self.dlg.LE_polylines.text():
-                error_msg = error_msg + "Completer ou fermer la rubrique des polylignes.\n\n"
+            if self.dlg.CB_removePolylines.isChecked() and not \
+               self.dlg.LE_polylines.text():
+                error_msg = error_msg + "Completer ou fermer la " + \
+                            "rubrique des polylignes.\n\n"
                 c = True
-            if self.dlg.CB_removePolygons.isChecked() and not self.dlg.LE_polygons.text():
-                error_msg = error_msg + "Completer ou fermer la rubrique des polygones.\n\n"
+            if self.dlg.CB_removePolygons.isChecked() and not \
+               self.dlg.LE_polygons.text():
+                error_msg = error_msg + "Completer ou fermer la " + \
+                            "rubrique des polygones.\n\n"
                 c = True
-            if int(self.dlg.LE_minSurfBigElem.text()) < int(self.dlg.LE_minForSurfThres.text()):
-                error_msg = error_msg + "La valeur de 'Surface minimum grands elements' doit etre superieure ou egale a la valeur de 'Surface minimale de la foret'.\n\n"
+            if int(self.dlg.LE_minSurfBigElem.text()) < \
+               int(self.dlg.LE_minForSurfThres.text()):
+                error_msg += "La valeur de 'Surface min. grands elements'" + \
+                             " doit etre superieure ou egale a la valeur " + \
+                             "de 'Surface minimale de la foret'.\n\n"
                 c = True
 
             if c:
                 QMessageBox.warning(None, "Erreur(s)", error_msg)
             else:
 
-                #Save inputs in args
                 args = {
                     "Path_input" :          str(self.dlg.LE_input.text()),                  # Chemin d'accès au Modèle Numérique de Canopée (entrée)
                     "Path_output":          str(self.dlg.LE_output.text()),                 # Chemin d'accès au dossier de sortie
@@ -507,7 +493,6 @@ class forLim:
                 global driver
                 driver = ogr.GetDriverByName("ESRI Shapefile")
 
-                #Set Path-output for metadata
                 now_time = datetime.now()
                 # USE UUID instead...
                 # name = "forLim_" + str(uuid4())
@@ -525,11 +510,10 @@ class forLim:
                 self.dlg.progressBar.setMinimum(1)
                 self.dlg.progressBar.setMaximum(nfiles+9)
 
-                #Print progress on user window
-                self.dlg.label_printActualProcess.setText("Processing tiles ...")
+                # Print progress on user window
+                self.dlg.label_printActualProcess.setText("Processing tiles..")
                 self.dlg.progressBar.setValue(1)
                 QApplication.processEvents()
-
 
                 ###################################
                 #  A. Delaunay's triangulation    #
@@ -544,11 +528,11 @@ class forLim:
                         'src': str(args['Path_input']),
                         'dst': str(args['Path_output']),
                         'MinAreaThres': int(args['MinAreaThres']),
-                        'MaxAreaThres': 2500,
-                        'forestRatio': 0.8,
-                        'woodenPastureRatio': 0.3,
+                        'MaxAreaThres': int(args['HoleSizeThres']),
+                        'forestRatio': int(args['Deg_Recouv_FD']),
+                        'woodenPastureRatio': int(args['Deg_Recouv_PB']),
                         'plugin': True,
-                        'args': args #take all args with us on the way. Options should be replaced by args in the future
+                        'args': args
                     }
 
                     for f in enumerate(files):
@@ -564,47 +548,48 @@ class forLim:
                     # Convolution method is chosen
                     print "you chose the moving window method"
 
-                    #Create tiles directory
+                    # Create tiles directory
                     args["Path_output_tiles"] = os.path.join(args["Path_output"],"tiles")
                     os.mkdir(args["Path_output_tiles"])
 
-                    #Process on each tile
+                    # Process on each tile
                     for f in enumerate(files):
                         self.dlg.progressBar.setValue(f[0]+2)
                         QApplication.processEvents()
                         args["Path_input"] = f[1]
                         Overlap_fct.main(args)
 
-                    #Re-set path_input for metadata
+                    # Re-set path_input for metadata
                     args["Path_input"] = path_input
 
-                    #Set last path
+                    # Set last path
                     if nfiles == 1:
-                        lastPath = os.path.join(args["Path_output_tiles"], os.path.basename(args["Path_input"]).split('.tif')[0] + ".shp")
-
+                        lastPath = os.path.join(args["Path_output_tiles"],
+                                                os.path.basename(args["Path_input"]).split('.tif')[0] + ".shp")
 
                     ####################################################
                     #  1. assembler les tuiles dans un seul shapefile  #
                     ####################################################
 
-                    #Create merge directory
+                    # Create merge directory
                     args["Path_output_merge"] = os.path.join(args["Path_output"],"merge")
                     os.mkdir(args["Path_output_merge"])
 
                     if nfiles >= 1:
 
-                        #Print progress on user window
+                        # Print progress on user window
                         self.dlg.label_printActualProcess.setText("Merging shapefiles to one ...")
                         QApplication.processEvents()
 
-                        #Create new files
-                        merge_path = os.path.join(args["Path_output_merge"],"merge.shp")
+                        # Create new files
+                        merge_path = os.path.join(args["Path_output_merge"],
+                                                  "merge.shp")
 
-                        #Merge shapefiles
+                        # Merge shapefiles
                         merge_fct.main(files,merge_path,args)
 
-                    #Print progress on user window
-                    self.dlg.progressBar.setValue(self.dlg.progressBar.value()+1)
+                    # Print progress on user window
+                    self.dlg.progressBar.setValue(self.dlg.progressBar.value() + 1)
                     QApplication.processEvents()
 
                     ###############################
@@ -612,24 +597,24 @@ class forLim:
                     ###############################
 
                     if nfiles >= 1:
-                        #Print progress on user window
+                        # Print progress on user window
                         self.dlg.label_printActualProcess.setText("Dissolving merged shapefile ...")
                         QApplication.processEvents()
 
-                        #Dissolve on FD and PB
+                        # Dissolve on FD and PB
                         file_type = ["FD", "PBandFD"]
                         for i in file_type:
 
-                            #Create new files
+                            # Create new files
                             merge_path = os.path.join(args["Path_output_merge"], "merge_" + i + ".shp")
                             dissolve_path = os.path.join(args["Path_output_merge"], "dissolve_" + i + ".shp")
 
-                            #Dissolve merge files
+                            # Dissolve merge files
                             runalg("gdalogr:dissolvepolygons", merge_path, "geometry", "TYPE", True, False, False, False, False, "diss", [], dissolve_path)
                             if not os.path.exists(dissolve_path):
                                 runalg("qgis:dissolve", merge_path, False, "TYPE", dissolve_path)
 
-                    #Print progress on user window
+                    # Print progress on user window
                     self.dlg.progressBar.setValue(self.dlg.progressBar.value()+1)
                     QApplication.processEvents()
 
@@ -637,7 +622,7 @@ class forLim:
                     #  3. simplifier la géométrie  #
                     ################################
 
-                    #Print progress on user window
+                    # Print progress on user window
                     self.dlg.label_printActualProcess.setText("Simplifying geometry ...")
                     QApplication.processEvents()
 
@@ -645,17 +630,17 @@ class forLim:
                     files = ["FD", "PBandFD"]
                     for i in files:
 
-                        #Create new files
+                        # Create new files
                         lastPath = os.path.join(args["Path_output_merge"], "dissolve_" + i + ".shp")
                         tmp_path = os.path.join(args["Path_output_merge"], "simplify_" + i + "_m2s.shp")
                         simplify_path = os.path.join(args["Path_output_merge"],"simplify_" + i + ".shp")
                         f.append(simplify_path)
 
-                        #Processing tools
+                        # Processing tools
                         runalg("qgis:simplifygeometries", lastPath, args["Simplify_factor"], tmp_path)
                         runalg("qgis:multiparttosingleparts", tmp_path, simplify_path)
 
-                        #Add area field
+                        # Add area field
                         ds = ogr.Open(simplify_path,1)
                         lyr = ds.GetLayer()
                         lyr.ResetReading()
@@ -665,7 +650,7 @@ class forLim:
                         lyr.CreateField(field_dfn)
 
                         if not args["Remove_hedges"]:
-                            #Remove each area < specified surface
+                            # Remove each area < specified surface
                             for i in enumerate(lyr):
                                 geom = i[1].GetGeometryRef()
                                 area = geom.GetArea()
@@ -678,63 +663,64 @@ class forLim:
                             lyr = None
                             ds.Destroy()
 
-                    #Set last path
+                    # Set last path
                     lastPath = list()
-                    lastPath = f #simplify_FD.shp
+                    lastPath = f
 
-                    #Print progress on user window
-                    self.dlg.progressBar.setValue(self.dlg.progressBar.value()+1)
+                    # Print progress on user window
+                    self.dlg.progressBar.setValue(self.dlg.progressBar.value() + 1)
                     QApplication.processEvents()
 
                     ###################################
                     #  4. créer le masque des tuiles  #
                     ###################################
 
-                    #Create intermediate directory
+                    # Create intermediate directory
                     args["Path_output_intermediate"] = os.path.join(args["Path_output"],"simplify")
                     os.mkdir(args["Path_output_intermediate"])
 
-                    #If user wants to remove something from product file
+                    # If user wants to remove something from product file
                     if args["Remove_hedges"] or args["Remove_polylines"] or args["Remove_polygons"]:
 
-                        #Print progress on user window
+                        # Print progress on user window
                         self.dlg.label_printActualProcess.setText("Create mask ...")
                         QApplication.processEvents()
 
-                        ##Get shapefiles extent and create a polygonfile with them
-                        #Make polygon mask limited by boudaries
-                        tmp_path = os.path.join(args["Path_output_intermediate"],"mask_tiled.shp")
+                        tmp_path = os.path.join(args["Path_output_intermediate"],
+                                                "mask_tiled.shp")
 
-                        #Get projection reference
+                        # Get projection reference
                         ds = ogr.Open(lastPath[0])
                         lyr = ds.GetLayer()
                         proj = lyr.GetSpatialRef()
                         ds.Destroy()
 
-                        #Create temporary file containing polygons of extents
+                        # Create temporary file containing polygons of extents
                         driver = ogr.GetDriverByName("ESRI Shapefile")
 
                         tmp_ds = driver.CreateDataSource(tmp_path)
-                        tmp_lyr = tmp_ds.CreateLayer('mask',geom_type=ogr.wkbPolygon,srs=proj)
+                        tmp_lyr = tmp_ds.CreateLayer('mask',
+                                                     geom_type=ogr.wkbPolygon,
+                                                     srs=proj)
 
                         files = os.listdir(args["Path_output_tiles"])
                         for f in files:
                             if f.endswith(".shp"):
 
-                                #Get extent
+                                # Get extent
                                 ds = driver.Open(os.path.join(args["Path_output_tiles"],f))
                                 lyr = ds.GetLayer()
-                                xmin,xmax,ymin,ymax = lyr.GetExtent()
-                                #Write new polygon
-                                #Create ring
+                                xmin, xmax, ymin, ymax = lyr.GetExtent()
+                                # Write new polygon
+                                # Create ring
                                 ring = ogr.Geometry(ogr.wkbLinearRing)
-                                ring.AddPoint(xmin,ymin)
-                                ring.AddPoint(xmin,ymax)
-                                ring.AddPoint(xmax,ymax)
-                                ring.AddPoint(xmax,ymin)
-                                ring.AddPoint(xmin,ymin)
+                                ring.AddPoint(xmin, ymin)
+                                ring.AddPoint(xmin, ymax)
+                                ring.AddPoint(xmax, ymax)
+                                ring.AddPoint(xmax, ymin)
+                                ring.AddPoint(xmin, ymin)
 
-                                #Create polygon
+                                # Create polygon
                                 poly = ogr.Geometry(ogr.wkbPolygon)
                                 poly.AddGeometry(ring)
 
@@ -742,59 +728,59 @@ class forLim:
                                 feature.SetGeometry(poly)
                                 tmp_lyr.CreateFeature(feature)
 
-                        #Close tmp data source
+                        # Close tmp data source
                         tmp_ds.Destroy()
 
-                        #Create new files
-                        mask_path = os.path.join(args["Path_output_intermediate"],"mask.shp")
+                        # Create new files
+                        mask_path = os.path.join(args["Path_output_intermediate"], "mask.shp")
 
-                        #Processing tools
+                        # Processing tools
                         runalg("qgis:dissolve", tmp_path, True, None, mask_path)
 
-                    #Print progress on user window
-                    self.dlg.progressBar.setValue(self.dlg.progressBar.value()+1)
+                    # Print progress on user window
+                    self.dlg.progressBar.setValue(self.dlg.progressBar.value() + 1)
                     QApplication.processEvents()
 
                     ############################
                     #  5. supprimer les haies  #
                     ############################
 
-                    file_type = ["FD","PB"]
+                    file_type = ["FD", "PB"]
                     if args["Remove_hedges"]:
 
-                        #Print progress on user window
+                        # Print progress on user window
                         self.dlg.label_printActualProcess.setText("Removing hedges layer ...")
                         QApplication.processEvents()
 
-                        #Print progress on user window
+                        # Print progress on user window
                         args["HedgesBuffer"] = str(self.dlg.CBox_hedgesBuffer.currentText())
 
-                        #Create new files
+                        # Create new files
                         maskHedges_path = os.path.join(args["Path_output_intermediate"], "mask_hedges.shp")
                         bufferHedges_path = os.path.join(args["Path_output_intermediate"], "buffer_hedges.shp")
 
-                        #Processing tools
+                        # Processing tools
                         runalg("qgis:clip", args["Path_hedges"], mask_path, maskHedges_path)
                         runalg("qgis:variabledistancebuffer", maskHedges_path, args["HedgesBuffer"], 5, True, bufferHedges_path)
 
                         new_file = list()
                         for f in enumerate(lastPath):
 
-                            #Create new files
+                            # Create new files
                             tmp_path = os.path.join(args["Path_output_intermediate"], "simplify_hedges_" + file_type[f[0]] + "_tmp.shp")
                             simplifyHedges_path = os.path.join(args["Path_output_intermediate"], "simplify_hedges_" + file_type[f[0]] + ".shp")
                             new_file.append(simplifyHedges_path)
 
-                            #Processing tools
+                            # Processing tools
                             runalg("qgis:difference", f[1], bufferHedges_path, tmp_path)
                             runalg("qgis:multiparttosingleparts", tmp_path, simplifyHedges_path)
 
-                            #Add area field
+                            # Add area field
                             ds = ogr.Open(simplifyHedges_path,1)
                             lyr = ds.GetLayer()
                             lyr.ResetReading()
 
-                            #Remove each area < specified surface
+                            # Remove each area < specified surface
                             for i in enumerate(lyr):
                                 geom = i[1].GetGeometryRef()
                                 area = geom.GetArea()
@@ -807,11 +793,11 @@ class forLim:
                             lyr = None
                             ds.Destroy()
 
-                        #Set last path
+                        # Set last path
                         lastPath = list()
                         lastPath = new_file
 
-                    #Print progress on user window
+                    # Print progress on user window
                     self.dlg.progressBar.setValue(self.dlg.progressBar.value()+1)
                     QApplication.processEvents()
 
@@ -821,30 +807,30 @@ class forLim:
 
                     if args["Remove_polygons"]:
 
-                        #Print progress on user window
+                        # Print progress on user window
                         self.dlg.label_printActualProcess.setText("Removing polygons layer ...")
                         QApplication.processEvents()
 
-                        #Create new files
+                        # Create new files
                         maskPolygons_path = (os.path.join(args["Path_output_intermediate"], "mask_polygons.shp"))
 
-                        #Processing tools
+                        # Processing tools
                         runalg("qgis:clip", args["Path_polygons"], mask_path, maskPolygons_path)
 
                         new_files = list()
                         for i in enumerate(lastPath):
-                            #Create new files
+                            # Create new files
                             simplifyPolygons_path = os.path.join(args["Path_output_intermediate"], "simplify_polygons_" + file_type[i[0]] + ".shp")
                             new_files.append(simplifyPolygons_path)
 
-                            #Processing tools
+                            # Processing tools
                             runalg("qgis:difference", i[1], maskPolygons_path, simplifyPolygons_path)
 
                         #Set last path
                         lastPath = new_files
 
-                    #Print progress on user window
-                    self.dlg.progressBar.setValue(self.dlg.progressBar.value()+1)
+                    # Print progress on user window
+                    self.dlg.progressBar.setValue(self.dlg.progressBar.value() + 1)
                     QApplication.processEvents()
 
                     #################################
@@ -853,35 +839,35 @@ class forLim:
 
                     if args["Remove_polylines"]:
 
-                         #Print progress on user window
+                        # Print progress on user window
                         self.dlg.label_printActualProcess.setText("Removing polylines layer ...")
                         QApplication.processEvents()
 
-                        #Get attribut column name
+                        # Get attribut column name
                         args["PolylinesBuffer"] = str(self.dlg.CBox_polylinesBuffer.currentText())
 
-                        #Create new files
+                        # Create new files
                         maskPolylines_path = os.path.join(args["Path_output_intermediate"], "mask_polylines.shp")
                         bufferPolylines_path = os.path.join(args["Path_output_intermediate"], "buffer_polylines.shp")
 
-                        #Processing tools
+                        # Processing tools
                         runalg("qgis:clip", args["Path_polylines"], mask_path, maskPolylines_path)
                         runalg("qgis:variabledistancebuffer", maskPolylines_path, args["PolylinesBuffer"], 5, True, bufferPolylines_path)
 
                         new_files = list()
                         for i in enumerate(lastPath):
 
-                            #Create new files
+                            # Create new files
                             simplifyPolylines_path = os.path.join(args["Path_output_intermediate"], "simplify_polylines_" + file_type[i[0]] + ".shp")
                             new_files.append(simplifyPolylines_path)
 
-                            #Processing tools
+                            # Processing tools
                             runalg("qgis:difference", i[1], bufferPolylines_path, simplifyPolylines_path)
 
-                        #set last path
+                        # set last path
                         lastPath = new_files
 
-                    #Print progress on user window
+                    # Print progress on user window
                     self.dlg.progressBar.setValue(self.dlg.progressBar.value()+1)
                     QApplication.processEvents()
 
@@ -889,30 +875,30 @@ class forLim:
                     #  8. séparer le paturage boisé et la forêt dense  #
                     ####################################################
 
-                    #Create new files
+                    # Create new files
                     simplify_hedges_PB_path = os.path.join(args["Path_output_intermediate"], "simplify_PB_withoutFD.shp")
                     singleParts_PB_path = os.path.join(args["Path_output_intermediate"], "simplify_PB_m2s.shp")
                     simplifyHedges_path = os.path.join(args["Path_output_intermediate"], "simplify.shp")
 
-                    #Processing tools
+                    # Processing tools
                     runalg("qgis:difference", lastPath[1], lastPath[0], simplify_hedges_PB_path)
                     runalg("qgis:multiparttosingleparts", simplify_hedges_PB_path, singleParts_PB_path)
                     runalg("qgis:mergevectorlayers", lastPath[0], singleParts_PB_path, simplifyHedges_path)
 
-                    #Set last path
+                    # Set last path
                     lastPath = simplifyHedges_path
 
                     ###################################
                     #  9. enregistrer fichier forest  #
                     ###################################
 
-                    #Create forest shp
+                    # Create forest shp
                     forest_path = os.path.join(args["Path_output"],"forest")
 
-                    #Copy last path and delete FID and AREA columns
+                    # Copy last path and delete FID and AREA columns
                     runalg("qgis:deletecolumn", lastPath, "AREA", forest_path + ".shp")
 
-                    #Add area field
+                    # Add area field
                     ds = driver.Open(forest_path + ".shp",1)
                     layer = ds.GetLayer()
                     for i in enumerate(layer):
@@ -922,7 +908,7 @@ class forLim:
                         layer.SetFeature(i[1])
                     ds.Destroy()
 
-                    #Add vector layer to map canevas
+                    # Add vector layer to map canevas
                     self.dlg.label_printActualProcess.setText("Add vector layer to map canevas ...")
                     QApplication.processEvents()
 
@@ -932,8 +918,10 @@ class forLim:
                         QgsMapLayerRegistry.instance().addMapLayer(vlayer)
 
                         forest = {
-                            'Foret dense':      (QColor(0,100,0), 'Foret dense'),
-                            'Paturage boise':   (QColor(0,160,0), 'Paturage boise')
+                            'Foret dense':      (QColor(0, 100, 0),
+                                                 'Foret dense'),
+                            'Paturage boise':   (QColor(0, 160, 0),
+                                                 'Paturage boise')
                         }
 
                         # create a category for each item in animals
@@ -949,12 +937,12 @@ class forLim:
                         renderer = QgsCategorizedSymbolRendererV2(expression, categories)
                         vlayer.setRendererV2(renderer)
 
-                    #Print progress on user window
+                    # Print progress on user window
                     self.dlg.progressBar.setValue(self.dlg.progressBar.maximum())
                     self.dlg.label_printActualProcess.setText("Done.")
                     QApplication.processEvents()
 
-                    #Write metadata
+                    # Write metadata
                     infos_path = os.path.join(args["Path_output"], "metadata.txt")
                     file = open(infos_path, "w")
                     file.write("Processed: " + str(now_time.date()) + "\n\n###############\n\n")

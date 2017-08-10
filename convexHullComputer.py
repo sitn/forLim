@@ -32,7 +32,6 @@ def main(options):
 
         # Iterate each file for processing and exports
         for k, file_list in enumerate(file_list):
-            print('Processing file ' + file_list)
             options['filePath'] = inputDir + file_list
             filename = basename(os.path.splitext(options['filePath'])[0])
 
@@ -40,7 +39,8 @@ def main(options):
             processing(options, filename)
 
     if options["args"]["AddLayer"]:
-        vlayer = QgsVectorLayer(options['dst'] + 'shp/' + filename + '_forest_zones.shp', "forest", "ogr")
+        vlayer = QgsVectorLayer(options['dst'] + 'shp/' + filename +
+                                '_forest_zones.shp', "forest", "ogr")
         QgsMapLayerRegistry.instance().addMapLayer(vlayer)
 
 
@@ -60,35 +60,37 @@ def initialize(options):
         os.makedirs(shpdst)
 
 
-def processing(options, filename):
+def processing(options, f):
     '''
     Select trees which are on the contour of the forest and isolated trees.
     '''
     # Export Grid contour and isolated to crowns values
-    print(options)
-    return
     driver = ogr.GetDriverByName('ESRI Shapefile')
 
     # Loads treetops selection
-    treetopsPath = options['dst'] + 'shp/' + filename + '_treetops_selected.shp'
+    treetopsPath = options['dst'] + 'shp/' + f + '_treetops_selected.shp'
     ds_treetops = driver.Open(treetopsPath, 0)
     treetops = ds_treetops.GetLayer()
 
     # Loads crowns selection
-    crownsPath = options['dst'] + 'shp/' + filename + '_crowns_selected.shp'
+    crownsPath = options['dst'] + 'shp/' + f + '_crowns_selected.shp'
     ds_crowns = driver.Open(crownsPath, 0)
     crowns = ds_crowns.GetLayer()
 
     # Loads treetops triangulation
-    trianglesPath = options['dst'] + 'shp/' + filename + '_treetops_triangles.shp'
-    ds_triangles = driver.Open(trianglesPath, 0)
-    triangles = ds_triangles.GetLayer()
+    trianglesPath = options['dst'] + 'shp/' + f + '_treetops_triangles.shp'
+    # ds_triangles = driver.Open(trianglesPath, 0)
+    # triangles = ds_triangles.GetLayer()
+    triangles = QgsVectorLayer(trianglesPath, "triangles", "ogr")
+    if not triangles.isValid():
+        print "Layer triangles failed to load!"
 
     #  Create the new layers to store forest and wooden pasture convex hulls
-    CHsForestPath = options['dst'] + 'shp/' + filename + '_convexHulls_forest.shp'
+    CHsForestPath = options['dst'] + 'shp/' + f + '_convexHulls_forest.shp'
     spio.pathChecker(CHsForestPath)
 
-    CHsWoodenPasturePath = options['dst'] + 'shp/' + filename + '_convexHulls_wooden_pasture.shp'
+    CHsWoodenPasturePath = options['dst'] + 'shp/' + f + \
+        '_convexHulls_wooden_pasture.shp'
     spio.pathChecker(CHsWoodenPasturePath)
 
     # Create the convex hulls forest data source
@@ -116,29 +118,32 @@ def processing(options, filename):
     # Create the matching table for crowns
     crown_N = []
     for crown in crowns:
-        crown_N.append(crown.GetField('N'))
+        crown_N.append(crown.GetField("N_1"))
 
-    for tri in triangles:
+    forestRatio = options['args']['Deg_Recouv_FD']
+    WoodenPastureRatio = options['args']['Deg_Recouv_PB']
+
+    for tri in triangles.getFeatures():
 
         # Get the corresponding treetop
-        alpha = treetops.GetFeature(int(tri.GetField('POINTA')))
-        beta = treetops.GetFeature(int(tri.GetField('POINTB')))
-        gamma = treetops.GetFeature(int(tri.GetField('POINTC')))
+        alpha = treetops.GetFeature(tri['POINTA'])
+        beta = treetops.GetFeature(tri['POINTB'])
+        gamma = treetops.GetFeature(tri['POINTC'])
 
         # Get the corresponding crown
         # TODO: CHECK RESULTS !!!
         geom_collection = ogr.Geometry(ogr.wkbGeometryCollection)
         crown_count = 0
-        if alpha.GetField('N') in crown_N:
+        if alpha.GetField("N") in crown_N:
             crown_alpha = crowns.GetFeature(crown_N.index(alpha.GetField('N')))
             geom_collection.AddGeometry(crown_alpha.geometry())
             crown_count += 1
 
-        if beta.GetField('N') in crown_N:
+        if beta.GetField("N") in crown_N:
             crown_beta = crowns.GetFeature(crown_N.index(beta.GetField('N')))
             geom_collection.AddGeometry(crown_beta.geometry())
             crown_count += 1
-        if gamma.GetField('N') in crown_N:
+        if gamma.GetField("N") in crown_N:
             crown_gamma = crowns.GetFeature(crown_N.index(gamma.GetField('N')))
             geom_collection.AddGeometry(crown_gamma.geometry())
             crown_count += 1
@@ -152,30 +157,21 @@ def processing(options, filename):
             crowns_area = ogr.Geometry.Area(geom_collection)
 
             ratio = crowns_area / conv_area
-
+            ratios.append(ratio)
             # Store the Convex Hulls in the corresponding category
-            forestRatio = options['forestRatio']
-            WoodenPastureRatio = options['woodenPastureRatio']
-
             if ratio > forestRatio:
                 convHull = ogr.Feature(CHsForest.GetLayerDefn())
-                convHull.SetField('ID', int(tri.GetFID()))
+                convHull.SetField('ID', int(tri.id()))
                 convHull.SetGeometry(convex_hull)
                 CHsForest.CreateFeature(convHull)
                 convHull.Destroy()
 
             elif ratio > WoodenPastureRatio:
                 convHull = ogr.Feature(CHsWoodenPasture.GetLayerDefn())
-                convHull.SetField('ID', int(tri.GetFID()))
+                convHull.SetField('ID', int(tri.id()))
                 convHull.SetGeometry(convex_hull)
                 CHsWoodenPasture.CreateFeature(convHull)
                 convHull.Destroy()
-
-    ds_treetops.Destroy()
-    ds_crowns.Destroy()
-    ds_triangles.Destroy()
-    ds_CHsForest.Destroy()
-    ds_CHsWoodenPasture.Destroy()
 
 
 if __name__ == "__main__":

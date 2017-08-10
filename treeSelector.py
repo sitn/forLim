@@ -11,31 +11,12 @@ import spatialIO as spio
 
 # Check whether we're on QGIS or not
 import qgis.utils
-inqgis = qgis.utils.iface is not None
 
-if inqgis:
-    from PyQt4.QtCore import *
-    from PyQt4.QtGui import *
-    from qgis.core import *
-    from qgis.gui import *
-    from processing import runalg
-else:
-
-    import os
-    import sys
-    import glob
-    # Prepare the environment
-    from qgis.core import *
-    from PyQt4.QtGui import *
-
-    from os.path import expanduser
-    home = expanduser("~")
-
-    # Prepare processing framework
-    sys.path.append(home + '\.qgis2\python\plugins')
-    from processing.core.Processing import Processing
-    Processing.initialize()
-    from processing.tools import *
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
+from qgis.core import *
+from qgis.gui import *
+from processing import runalg
 
 
 def main(options):
@@ -88,26 +69,19 @@ def initialize(options):
         print 'output folder ' + shpdst + ' was created'
 
 
-def processing(options, filename):
+def processing(options, f):
     '''
     Select trees which are on the contour of the forest and isolated trees.
     '''
     # Export Grid contour and isolated to crowns values
-    forestSelectedPath = options['dst'] + 'tif/' + filename + \
+    forestSelectedPath = options['dst'] + 'tif/' + f + \
         '_forest_selected.tif'
-    crownsPath = options['dst'] + 'shp/' + filename + '_crowns.shp'
-    crownsStatsPath = options['dst'] + 'shp/' + filename + '_crowns_stats.shp'
-    print(crownsStatsPath)
-    # TODO: WHICH STAT HAS TO BE CALCULATED ???
-    if options['plugin']:
-        runalg('saga:gridstatisticsforpolygons', forestSelectedPath,
-               crownsPath, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, crownsStatsPath)
-    else:
-        general.runalg('saga:gridstatisticsforpolygons', forestSelectedPath,
-                       crownsPath, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
-                       crownsStatsPath)
+    crownsPath = options['dst'] + 'shp/' + f + '_crowns.shp'
+    crownsStatsPath = options['dst'] + 'shp/' + f + '_crowns_stats.shp'
 
-    # Select Crown features with contour or isolated values
+    # get the MAX value
+    runalg('saga:gridstatisticsforpolygons', forestSelectedPath,
+           crownsPath, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, crownsStatsPath)
 
     # Loads new crowns layer in edit mode
     driver = ogr.GetDriverByName('ESRI Shapefile')
@@ -117,19 +91,20 @@ def processing(options, filename):
 
     layerDefinition = crowns.GetLayerDefn()
 
-    # Find FID of each unselected crown and remove it from the new crown layer
+    #  Filter out tree at the forest limit
+    # Find FID of each unselected crown and remove it
     selected_array = []
     unselected_array = []
 
     for feature in crowns:
-        if feature.GetField(1) != 1:  # TODO: CHECK THAT THIS IS CORECT!!!
+        if feature.GetField(1) == 1:  # TODO: USE NAMED FIELD
             selected_array.append(feature.GetField("N"))
         else:
             unselected_array.append(feature.GetField("N"))
             crowns.DeleteFeature(feature.GetFID())
 
     ds_crownsStats.Destroy()
-    treetopsPath = options['dst'] + 'shp/' + filename + '_treetops.shp'
+    treetopsPath = options['dst'] + 'shp/' + f + '_treetops.shp'
 
     ds_treetops = driver.Open(treetopsPath, 1)
     treetops = ds_treetops.GetLayer()
@@ -142,27 +117,22 @@ def processing(options, filename):
     # Clear dataSources
     ds_treetops.Destroy()
 
+    treetopsSelectedPath = options['dst'] + 'shp/' + f + \
+        '_treetops_selected.shp'
+    crownsSelectedPath = options['dst'] + 'shp/' + f + '_crowns_selected.shp'
+    treetopsTrianglesPath = options['dst'] + 'shp/' + f + \
+        '_treetops_triangles.shp'
 
-    treetopsSelectedPath = options['dst'] + 'shp/' + filename + '_treetops_selected.shp'
-    crownsSelectedPath = options['dst']+ 'shp/' + filename + '_crowns_selected.shp'
-    treetopsTrianglesPath = options['dst'] + 'shp/' + filename + '_treetops_triangles.shp'
-
-    if options['plugin']:
-        runalg('qgis:advancedpythonfieldcalculator', treetopsPath,
-               'N', 0, 10, 0, '', 'value = $id +1', treetopsSelectedPath)
-        runalg('qgis:advancedpythonfieldcalculator', crownsStatsPath,
-               'ROW', 0, 10, 0, '', 'value = $id', crownsSelectedPath)
-        runalg('qgis:delaunaytriangulation',
-               treetopsSelectedPath, treetopsTrianglesPath)
-
-    else:
-        general.runalg('qgis:advancedpythonfieldcalculator', treetopsPath,
-                       'N', 0, 10, 0, '', 'value = $id +1',
-                       treetopsSelectedPath)
-        general.runalg('qgis:advancedpythonfieldcalculator', crownsStatsPath,
-                       'ROW', 0, 10, 0, '', 'value = $id', crownsSelectedPath)
-        general.runalg('qgis:delaunaytriangulation', treetopsSelectedPath,
-                       treetopsTrianglesPath)
+    runalg('qgis:advancedpythonfieldcalculator', treetopsPath,
+           'N', 0, 10, 0, '', 'value = $id', treetopsSelectedPath)
+    # runalg('qgis:advancedpythonfieldcalculator', crownsStatsPath,
+    #        'ROW', 0, 10, 0, '', 'value = $id', crownsSelectedPath)
+    print(crownsStatsPath, treetopsPath)
+    runalg('qgis:joinattributesbylocation', crownsStatsPath,
+           treetopsSelectedPath, u'contains', 0.0,  0, '', 0,
+           crownsSelectedPath)
+    runalg('qgis:delaunaytriangulation',
+           treetopsSelectedPath, treetopsTrianglesPath)
 
 
 if __name__ == "__main__":
