@@ -172,13 +172,7 @@ class forLim:
         self.dlg.LE_minWidthThres.setValidator(QIntValidator())
         self.dlg.LE_minForSurfThres.setValidator(QIntValidator())
         self.dlg.LE_minClearingSurfThres.setValidator(QIntValidator())
-        self.dlg.LE_simplifyFactor.setValidator(QDoubleValidator())
-        self.dlg.LE_borderWidth.setValidator(QIntValidator())
         self.dlg.LE_gradConvDiameter.setValidator(QIntValidator())
-        self.dlg.LE_minSurfBigElem.setValidator(QIntValidator())
-
-        # set default value of minSurfBigElem
-        self.dlg.LE_minSurfBigElem.setText(self.dlg.LE_minForSurfThres.text())
 
         # Set add result to canevas as default
         self.dlg.CB_addLayer.setCheckState(2)
@@ -427,12 +421,6 @@ class forLim:
                 error_msg = error_msg + "Completer ou fermer la " + \
                             "rubrique des polygones.\n\n"
                 c = True
-            if int(self.dlg.LE_minSurfBigElem.text()) < \
-               int(self.dlg.LE_minForSurfThres.text()):
-                error_msg += "La valeur de 'Surface min. grands elements'" + \
-                             " doit etre superieure ou egale a la valeur " + \
-                             "de 'Surface minimale de la foret'.\n\n"
-                c = True
 
             if c:
                 QMessageBox.warning(None, "Erreur(s)", error_msg)
@@ -448,12 +436,6 @@ class forLim:
                     # Hauteur de la fenêtre de lissage
                     "GradConvDiameter":
                     int(self.dlg.LE_gradConvDiameter.text()),
-                    # Surface minimale des grands éléments
-                    "MinAreaBigElem":
-                    int(self.dlg.LE_minSurfBigElem.text()),
-                    # Marge peuplement dense
-                    "BorderWidth":
-                    int(self.dlg.LE_borderWidth.text()),
                     # Hauteur minimale des arbres
                     "MinHeightThres":
                     int(self.dlg.LE_minHeightThres.text()),
@@ -475,9 +457,6 @@ class forLim:
                     # surface minimum clairière
                     "HoleSizeThres":
                     int(self.dlg.LE_minClearingSurfThres.text()),
-                    # Facteur de simplification du shapefile
-                    "Simplify_factor":
-                    float(self.dlg.LE_simplifyFactor.text()),
                     # Ajouter le shapefile forêt
                     "AddLayer":
                     bool(self.dlg.CB_addLayer.isChecked()),
