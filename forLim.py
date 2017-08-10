@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
-# TODO: selective imports
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from qgis.core import *
-from qgis.gui import *
+from PyQt4.QtCore import QSettings, QTranslator, QCoreApplication, QObject
+from PyQt4.QtCore import SIGNAL
+from PyQt4.QtGui import QAction, QIntValidator, QDoubleValidator, QIcon
+from PyQt4.QtGui import QFileDialog, QMessageBox, QApplication
+
+from qgis.core import QgsMapLayerRegistry, QgsVectorLayer, QgsSymbolV2
+from qgis.core import QgsRendererCategoryV2, QgsCategorizedSymbolRendererV2
+from qgis.gui import QgsMessageBar
+
 # Initialize Qt resources from file resources.py
 import resources_rc
 from forLim_dialog import forLimDialog
