@@ -500,14 +500,9 @@ class forLim:
                     str(self.dlg.LE_hedges.text()),
                 }
 
-                global driver
-                driver = ogr.GetDriverByName("ESRI Shapefile")
-
                 now_time = datetime.now()
-                # USE UUID instead...
-                # name = "forLim_" + str(uuid4())
-                name = "forLim_" + str(now_time.date()) + "_" + \
-                       str(now_time.hour) + "H" + str(now_time.minute)
+
+                name = "forLim_" + str(uuid4())
                 args["Path_output"] = os.path.join(args["Path_output"], name)
                 os.mkdir(args["Path_output"])
 
