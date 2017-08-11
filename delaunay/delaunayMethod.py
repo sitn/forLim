@@ -7,25 +7,28 @@ import treeSelector
 import convexHullComputer
 
 
-def main(options):
+def main(self, options, current_tile):
     '''
     Runs a set of tasks to determine the forest delimitation using
     Delaunay's Method
     '''
 
-    processing(options)
+    processing(self, options, current_tile)
 
 
-def processing(options):
+def processing(self, options, current_tile):
     '''
     Processes the canopy height model to determine the forest delimitation
     '''
     outputDir = options["dst"]
     f = open(outputDir + "/log.txt", "w")
+
     ###################################
     #  0. Forest shape extraction     #
     ###################################
     # Run the general forest prior shape, contour and isolated trees extraction
+    self.dlg.label_printActualProcess.setText(u'Running shape detection for' +
+                                              ' tile: ' + str(current_tile))
     forestDetectShape.main(options)
     f.write("forestDetectShape passed\n")
     ###################################
@@ -33,6 +36,8 @@ def processing(options):
     ###################################
 
     # run Matthew Parkan's treeDetectLmax modified version
+    self.dlg.label_printActualProcess.setText(u'Running tree detection for' +
+                                              ' tile: ' + str(current_tile))
     treeDetectTops.main(options)
     f.write("treeDetectTops passed\n")
 
@@ -40,6 +45,8 @@ def processing(options):
     #  2. Tree crowns extraction      #
     ###################################
     # run the treecrown detection from the previously calculated treetops
+    self.dlg.label_printActualProcess.setText(u'Running crown detection for' +
+                                              ' tile: ' + str(current_tile))
     treeDetectCrowns.main(options)
     f.write("treeDetectCrowns passed\n")
 
@@ -47,6 +54,8 @@ def processing(options):
     #  3. Trees selection             #
     ###################################
     # Select the trees from forest contour and isolated trees
+    self.dlg.label_printActualProcess.setText(u'Running tree selection for' +
+                                              ' tile: ' + str(current_tile))
     treeSelector.main(options)
     f.write("treeSelector passed\n")
 
@@ -54,6 +63,8 @@ def processing(options):
     #  4. Convex hulls computation    #
     ###################################
     # Compute for each triangle the convex hull and the coverage ratio
+    self.dlg.label_printActualProcess.setText(u'Calculating convex hulls for' +
+                                              ' tile: ' + str(current_tile))
     convexHullComputer.main(options)
     f.write("convexHullComputer passed\n")
     f.close()

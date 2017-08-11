@@ -111,9 +111,8 @@ class forLim:
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
         # Input
-        global last_path_input, input_message
+        global last_path_input
         last_path_input = self.dlg.LE_input.text()
-        input_message = True
         QObject.connect(self.dlg.PB_input, SIGNAL("clicked()"),
                         self.select_input_files)
         QObject.connect(self.dlg.LE_input, SIGNAL("editingFinished()"),
@@ -195,8 +194,6 @@ class forLim:
             for f in filenames[1:]:
                 filenames2 = filenames2+";"+f
             self.dlg.LE_input.setText(filenames2)
-            if len(filenames) > 1:
-                self.input_message()
 
     def check_input_path(self):
         global last_path_input
@@ -212,18 +209,6 @@ class forLim:
                                                 "' n'existe pas.",
                                                 QgsMessageBar.CRITICAL, 7)
                     f_exist = False
-            if len(files) > 1 and f_exist and input_message:
-                self.input_message()
-
-    def input_message(self):
-        global input_message
-        input_message = False
-        QMessageBox.warning(None,
-                            "Recouvrement entre les tuiles",
-                            "Attention: un recouvrement d'environ 500 m " +
-                            " entre les tuiles est necessaire." +
-                            "\n\nSans ce recouvrement, les effets de bords " +
-                            "sont importants.")
 
     def select_output_directory(self):
         self.dlg.LE_output.setFocus()
@@ -525,9 +510,9 @@ class forLim:
                     self.dlg.label_printActualProcess \
                         .setText("Processing tile " + str(i) + "/" +
                                  str(len((files))))
-                    self.dlg.progressBar.setValue(i)
                     args['Path_input'] = f[1]
                     options['src'] = str(args['Path_input'])
-                    delaunayMethod.main(options)
+                    delaunayMethod.main(self, options, i)
+                    self.dlg.progressBar.setValue(i)
 
                 self.dlg.label_printActualProcess.setText(u'Calcul terminé')
