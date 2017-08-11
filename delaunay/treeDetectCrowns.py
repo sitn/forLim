@@ -58,24 +58,20 @@ def initialize(options):
 
     if not os.path.isdir(options['dst']):
         os.mkdir(options['dst'])
-        print 'output folder was created'
     if not options['dst'].endswith('/'):
         options['dst'] = options['dst'] + '/'
     tifdst = options['dst'] + 'tif'
     if not os.path.exists(tifdst):
         os.makedirs(tifdst)
-        print 'output folder ' + tifdst + ' was created'
     shpdst = options['dst'] + 'shp'
     if not os.path.exists(shpdst):
         os.makedirs(shpdst)
-        print 'output folder ' + shpdst + ' was created'
 
 
 def processing(options):
     '''
     Processes the canopy height model to determine the forest delimitation
     '''
-    print 'Tree crowns calculation in progress'
 
     # 1 Import Raster
     data, geotransform, prj_wkt = spio.rasterReader(options['filePath'])

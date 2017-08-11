@@ -17,7 +17,6 @@ import spatialIO as spio
 
 
 def main(options):
-    print 'Computing treetops'
 
     # Prepare the folders for outputs:
     initialize(options)
@@ -40,15 +39,12 @@ def main(options):
         inputDir = options['src']
 
         for k, file_list in enumerate(file_list):
-            print('processing ' + file_list)
             options['filePath'] = inputDir + file_list
             filename = basename(os.path.splitext(options['filePath'])[0])
             trees = processCHM(options)
             treetopsPath = options['dst'] + 'shp/' + filename + '_treetops.shp'
             spio.pointShpWriter(treetopsPath, trees['prj_wkt'], trees['xpos'],
                                 trees['ypos'], trees['height'], 'H')
-
-    print 'Computing Treetops completed'
 
 
 def initialize(options):
@@ -58,17 +54,14 @@ def initialize(options):
 
     if not os.path.isdir(options['dst']):
         os.mkdir(options['dst'])
-        print 'output folder was created'
     if not options['dst'].endswith('/'):
         options['dst'] = options['dst'] + '/'
     tifdst = options['dst'] + 'tif'
     if not os.path.exists(tifdst):
         os.makedirs(tifdst)
-        print 'output folder ' + tifdst + ' was created'
     shpdst = options['dst'] + 'shp'
     if not os.path.exists(shpdst):
         os.makedirs(shpdst)
-        print 'output folder ' + shpdst + ' was created'
 
 
 def processCHM(options):

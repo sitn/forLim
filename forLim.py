@@ -111,9 +111,8 @@ class forLim:
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
         # Input
-        global last_path_input, input_message
+        global last_path_input
         last_path_input = self.dlg.LE_input.text()
-        input_message = True
         QObject.connect(self.dlg.PB_input, SIGNAL("clicked()"),
                         self.select_input_files)
         QObject.connect(self.dlg.LE_input, SIGNAL("editingFinished()"),
@@ -195,8 +194,6 @@ class forLim:
             for f in filenames[1:]:
                 filenames2 = filenames2+";"+f
             self.dlg.LE_input.setText(filenames2)
-            if len(filenames) > 1:
-                self.input_message()
 
     def check_input_path(self):
         global last_path_input
@@ -212,18 +209,6 @@ class forLim:
                                                 "' n'existe pas.",
                                                 QgsMessageBar.CRITICAL, 7)
                     f_exist = False
-            if len(files) > 1 and f_exist and input_message:
-                self.input_message()
-
-    def input_message(self):
-        global input_message
-        input_message = False
-        QMessageBox.warning(None,
-                            "Recouvrement entre les tuiles",
-                            "Attention: un recouvrement d'environ 500 m " +
-                            " entre les tuiles est necessaire." +
-                            "\n\nSans ce recouvrement, les effets de bords " +
-                            "sont importants.")
 
     def select_output_directory(self):
         self.dlg.LE_output.setFocus()
@@ -426,7 +411,7 @@ class forLim:
                 QMessageBox.warning(None, "Erreur(s)", error_msg)
             else:
 
-                args = {
+                options = {
                     # Chemin d'accès au Modèle Numérique de Canopée (entrée)
                     "Path_input":
                     str(self.dlg.LE_input.text()),
@@ -434,7 +419,7 @@ class forLim:
                     "Path_output":
                     str(self.dlg.LE_output.text()),
                     # Hauteur de la fenêtre de lissage
-                    "GradConvDiameter":
+                    "WinRad":
                     int(self.dlg.LE_gradConvDiameter.text()),
                     # Hauteur minimale des arbres
                     "MinHeightThres":
@@ -443,10 +428,10 @@ class forLim:
                     "MaxHeightThres":
                     int(self.dlg.LE_maxHeightThres.text()),
                     # Degré de recouvrement pour la foret dense
-                    "Deg_Recouv_FD":
+                    "forestRatio":
                     float(self.dlg.LE_DRFD.text()),
                     # Degré de recouvrement pour le paturage boise
-                    "Deg_Recouv_PB":
+                    "woodenPastureRatio":
                     float(self.dlg.LE_DRPB.text()),
                     # largeur minimale forêt
                     "WidthThres":
@@ -455,7 +440,7 @@ class forLim:
                     "MinAreaThres":
                     int(self.dlg.LE_minForSurfThres.text()),
                     # surface minimum clairière
-                    "HoleSizeThres":
+                    "MaxAreaThres":
                     int(self.dlg.LE_minClearingSurfThres.text()),
                     # Ajouter le shapefile forêt
                     "AddLayer":
@@ -475,49 +460,52 @@ class forLim:
                     bool(self.dlg.CB_removeHedges.isChecked()),
                     "Path_hedges":
                     str(self.dlg.LE_hedges.text()),
+                    "plugin":
+                    True
                 }
 
                 now_time = datetime.now()
 
                 name = "forLim_" + str(uuid4())
-                args["Path_output"] = os.path.join(args["Path_output"], name)
-                os.mkdir(args["Path_output"])
+                options["Path_output"] = \
+                    os.path.join(options["Path_output"], name)
+                os.mkdir(options["Path_output"])
 
                 # Get file list
-                path_input = args["Path_input"]
-                files = args["Path_input"].split(";")
+                path_input = options["Path_input"]
+                files = options["Path_input"].split(";")
                 nfiles = len(files)
 
                 # Set default values of process bar
                 self.dlg.progressBar.reset()
-                self.dlg.progressBar.setMinimum(1)
-                self.dlg.progressBar.setMaximum(nfiles+9)
+                self.dlg.progressBar.setMinimum(0)
+                self.dlg.progressBar.setMaximum(nfiles)
 
                 # Print progress on user window
                 self.dlg.label_printActualProcess.setText("Processing tiles..")
-                self.dlg.progressBar.setValue(1)
-                QApplication.processEvents()
+                self.dlg.progressBar.setValue(0)
+                # QApplication.processEvents()
 
                 ###################################
                 #  Delaunay's triangulation    #
                 ###################################
-                self.iface.actionShowPythonDialog().trigger()
 
-                options = {
-                    'WinRad': int(args['GradConvDiameter']),
-                    'MinHeightThres': float(args['MinHeightThres']),
-                    'src': str(args['Path_input']),
-                    'dst': str(args['Path_output']),
-                    'MinAreaThres': int(args['MinAreaThres']),
-                    'MaxAreaThres': int(args['HoleSizeThres']),
-                    'forestRatio': int(args['Deg_Recouv_FD']),
-                    'woodenPastureRatio': int(args['Deg_Recouv_PB']),
-                    'plugin': True,
-                    'args': args
-                }
+                options['src'] = str(options['Path_input'])
+                options['dst'] = str(options['Path_output'])
 
+                f = open(options['Path_output'] + '/forlim_medatata.txt', 'w')
+                f.write(str(options))
+                f.close()
+
+                i = 0
                 for f in enumerate(files):
-                    self.dlg.progressBar.setValue(f[0]+2)
-                    args['Path_input'] = f[1]
-                    options['src'] = str(args['Path_input'])
-                    delaunayMethod.main(options)
+                    i += 1
+                    self.dlg.label_printActualProcess \
+                        .setText("Processing tile " + str(i) + "/" +
+                                 str(len((files))))
+                    options['Path_input'] = f[1]
+                    options['src'] = str(options['Path_input'])
+                    delaunayMethod.main(self, options, i)
+                    self.dlg.progressBar.setValue(i)
+
+                self.dlg.label_printActualProcess.setText(u'Calcul terminé')

@@ -11,7 +11,6 @@ import spatialIO as spio
 
 
 def main(options):
-    print 'Computing convex hulls'
 
     # Prepare the folders for outputs:
     initialize(options)
@@ -38,7 +37,7 @@ def main(options):
             # Process each file
             processing(options, filename)
 
-    if options["args"]["AddLayer"]:
+    if options["AddLayer"]:
         vlayer = QgsVectorLayer(options['dst'] + 'shp/' + filename +
                                 '_forest_zones.shp', "forest", "ogr")
         QgsMapLayerRegistry.instance().addMapLayer(vlayer)
@@ -82,8 +81,6 @@ def processing(options, f):
     # ds_triangles = driver.Open(trianglesPath, 0)
     # triangles = ds_triangles.GetLayer()
     triangles = QgsVectorLayer(trianglesPath, "triangles", "ogr")
-    if not triangles.isValid():
-        print "Layer triangles failed to load!"
 
     #  Create the new layers to store forest and wooden pasture convex hulls
     CHsForestPath = options['dst'] + 'shp/' + f + '_convexHulls_forest.shp'
@@ -120,8 +117,8 @@ def processing(options, f):
     for crown in crowns:
         crown_N.append(crown.GetField("N_1"))
 
-    forestRatio = options['args']['Deg_Recouv_FD']
-    WoodenPastureRatio = options['args']['Deg_Recouv_PB']
+    forestRatio = options['forestRatio']
+    WoodenPastureRatio = options['woodenPastureRatio']
 
     for tri in triangles.getFeatures():
 

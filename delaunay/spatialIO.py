@@ -204,8 +204,6 @@ def polygonizer(rasterPath, maskPath, shapePath):
     dsmask = None
     ds_vec = None
 
-    print('Layer has been polygonized')
-
 
 def rasterizer(shapePath, rasterPath, attribute, gridModelPath):
     '''Rasterize a shapefile using its attribute value
@@ -233,7 +231,6 @@ def rasterizer(shapePath, rasterPath, attribute, gridModelPath):
     if err != 0:
         raise Exception("error rasterizing layer: %s" % err)
     data = target_ds.ReadAsArray()
-    print data.shape
     rasterWriter(data, rasterPath, geotransform, prj_wkt, gdal.GDT_Int32)
 
 

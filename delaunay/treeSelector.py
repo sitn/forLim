@@ -20,14 +20,12 @@ from processing import runalg
 
 
 def main(options):
-    print 'Selecting trees of interest'
 
     # Prepare the folders for outputs:
     initialize(options)
 
     # For direct file input
     if not os.path.isdir(options['src']):
-        print("SINGLE FILE INPUT")
         options['filePath'] = options['src']
         filename = basename(os.path.splitext(options['filePath'])[0])
         processing(options, filename)
@@ -42,7 +40,6 @@ def main(options):
 
         # Iterate each file for processing and exports
         for k, file_list in enumerate(file_list):
-            print('Processing file ' + file_list)
             options['filePath'] = inputDir + file_list
             filename = basename(os.path.splitext(options['filePath'])[0])
 
@@ -56,17 +53,14 @@ def initialize(options):
     '''
     if not os.path.isdir(options['dst']):
         os.mkdir(options['dst'])
-        print 'output folder was created'
     if not options['dst'].endswith('/'):
         options['dst'] = options['dst'] + '/'
     tifdst = options['dst'] + 'tif'
     if not os.path.exists(tifdst):
         os.makedirs(tifdst)
-        print 'output folder ' + tifdst + ' was created'
     shpdst = options['dst'] + 'shp'
     if not os.path.exists(shpdst):
         os.makedirs(shpdst)
-        print 'output folder ' + shpdst + ' was created'
 
 
 def processing(options, f):
@@ -125,9 +119,7 @@ def processing(options, f):
 
     runalg('qgis:advancedpythonfieldcalculator', treetopsPath,
            'N', 0, 10, 0, '', 'value = $id', treetopsSelectedPath)
-    # runalg('qgis:advancedpythonfieldcalculator', crownsStatsPath,
-    #        'ROW', 0, 10, 0, '', 'value = $id', crownsSelectedPath)
-    print(crownsStatsPath, treetopsPath)
+
     runalg('qgis:joinattributesbylocation', crownsStatsPath,
            treetopsSelectedPath, u'contains', 0.0,  0, '', 0,
            crownsSelectedPath)

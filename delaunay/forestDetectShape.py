@@ -21,7 +21,9 @@ def main(options):
     if not os.path.isdir(options['src']):
         options['filePath'] = options['src']
         filename = basename(os.path.splitext(options['filePath'])[0])
-        forest_mask, forest_zones, forest_outline, forest_isolated, forest_selected = processing(options)
+
+        forest_mask, forest_zones, forest_outline, forest_isolated, \
+            forest_selected = processing(options)
 
         # export raster results
         export(options, filename, forest_mask, forest_zones, forest_outline,
@@ -42,7 +44,8 @@ def main(options):
                 filename = basename(os.path.splitext(options['filePath'])[0])
 
                 # Process each file
-                forest_mask, forest_zones, forest_outline, forest_isolated, forest_selected = processing(options)
+                forest_mask, forest_zones, forest_outline, forest_isolated, \
+                    forest_selected = processing(options)
 
                 # export raster results
                 export(options, filename, forest_mask, forest_zones,
@@ -61,7 +64,7 @@ def initialize(options):
     tifdst = options['dst'] + 'tif'
     if not os.path.exists(tifdst):
         os.makedirs(tifdst)
-        shpdst = options['dst'] + 'shp'
+    shpdst = options['dst'] + 'shp'
     if not os.path.exists(shpdst):
         os.makedirs(shpdst)
 
@@ -88,7 +91,6 @@ def processing(options):
     forest_mask = data > 0
 
     # Fill the small holes which are to small to be considered as clearings
-    print(options['MaxAreaThres'])
     holes = forest_mask < 1
     holes = filterElementsBySize(holes, options['MaxAreaThres'])
 
@@ -121,7 +123,8 @@ def processing(options):
     # Computing contour and isolated trees for selection purposes
     forest_selected = forest_isolated + forest_outline
 
-    return forest_mask, forest_zones, forest_outline, forest_isolated, forest_selected
+    return forest_mask, forest_zones, forest_outline, forest_isolated, \
+        forest_selected
 
 
 def filterElementsBySize(elements, size):
@@ -134,7 +137,7 @@ def filterElementsBySize(elements, size):
         elements, structure=None, output=np.int)
 
     # Initiate the new elements array
-    elements_new = np.zeros((RasterYSize, RasterXSize), dtype=np.bool)
+    # elements_new = np.zeros((RasterYSize, RasterXSize), dtype=np.bool)
 
     # filter the elements by size
     matches = np.bincount(labeled_array.ravel()) > size
@@ -144,25 +147,43 @@ def filterElementsBySize(elements, size):
     valid_match_feat_ID = np.setdiff1d(match_feat_ID, [0, num_features])
 
     # ORing operation
+    # TODO: fix memory issue of numpy in1d
+    # try this ?https://stackoverflow.com/questions/30082052/most-efficient-way-to-implement-numpy-in1d-for-muliple-arrays
+    #     def return_equal(*args):
+    #     rtr=[]
+    #     for i, arr in enumerate(args):
+    #         rtr.append([j for j, e in enumerate(arr) if
+    #                     all(e in a for a in args[0:i]) and
+    #                     all(e in a for a in args[i+1:])])
+    #     return rtr
+    #
+    # >>> return_equal(a,b,c)
+    # [[2, 4], [1, 3], [0, 1]]
     elements_new = np.in1d(labeled_array, valid_match_feat_ID
                            ).reshape(labeled_array.shape)
 
     return elements_new
 
 
-def export(options, filename, forest_mask, forest_zones, forest_outline, forest_isolated, forest_selected):
+def export(options, filename, forest_mask, forest_zones, forest_outline,
+           forest_isolated, forest_selected):
     '''
     Export the results to files
     '''
     # export raster results
     forest_maskPath = options['dst'] + 'tif/' + filename + '_forest_mask.tif'
-    spio.rasterWriter(forest_mask, forest_maskPath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
+    spio.rasterWriter(forest_mask, forest_maskPath, options['geotransform'],
+                      options['prj_wkt'], gdal.GDT_Byte)
 
     forest_zonesPath = options['dst'] + 'tif/' + filename + '_forest_zones.tif'
-    spio.rasterWriter(forest_zones, forest_zonesPath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
+    spio.rasterWriter(forest_zones, forest_zonesPath, options['geotransform'],
+                      options['prj_wkt'], gdal.GDT_Byte)
 
-    forest_selectedPath = options['dst'] + 'tif/' + filename + '_forest_selected.tif'
-    spio.rasterWriter(forest_selected, forest_selectedPath, options['geotransform'], options['prj_wkt'], gdal.GDT_Byte)
+    forest_selectedPath = options['dst'] + 'tif/' + filename + \
+        '_forest_selected.tif'
+    spio.rasterWriter(forest_selected, forest_selectedPath,
+                      options['geotransform'], options['prj_wkt'],
+                      gdal.GDT_Byte)
     # vectorize the forest zones
     polyPath = options['dst'] + 'shp/' + filename + '_forest_zones.shp'
     spio.polygonizer(forest_zonesPath, forest_zonesPath, polyPath)
