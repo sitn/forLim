@@ -6,6 +6,7 @@ from PyQt4.QtGui import QFileDialog, QMessageBox, QApplication
 
 from qgis.core import QgsMapLayerRegistry, QgsVectorLayer, QgsSymbolV2
 from qgis.core import QgsRendererCategoryV2, QgsCategorizedSymbolRendererV2
+from qgis.core import QgsCoordinateReferenceSystem
 from qgis.gui import QgsMessageBar
 
 # Initialize Qt resources from file resources.py
@@ -17,6 +18,7 @@ from .delaunay import delaunayMethod
 from processing import runalg
 import os
 from uuid import uuid4 as uuid4
+from .delaunay.postProcessing import merge, clip
 
 
 class forLim:
@@ -492,7 +494,7 @@ class forLim:
 
                 options['src'] = str(options['Path_input'])
                 options['dst'] = str(options['Path_output'])
-
+                print (options['dst'])
                 f = open(options['Path_output'] + '/forlim_medatata.txt', 'w')
                 f.write(str(options))
                 f.close()
@@ -507,5 +509,15 @@ class forLim:
                     options['src'] = str(options['Path_input'])
                     delaunayMethod.main(self, options, i)
                     self.dlg.progressBar.setValue(i)
+                # Merge tiles
+                merge(options, '_forest_zones.shp')
+                merge(options, '_ch_wpastures_dissolved.shp')
+                merge(options, '_ch_forest_dissolved.shp')
 
+                # remove wooden pastures from forest zones
+                clip('merged_ch_wpastures_dissolved.shp',
+                     'merged_forest_zones.shp', options['src'] +
+                     'forest_ne.shp')
+
+                # Merge convexhull calculation results
                 self.dlg.label_printActualProcess.setText(u'Calcul terminé')

@@ -7,6 +7,7 @@ from osgeo import gdal
 from osgeo import gdalconst
 import numpy as np
 import scipy.ndimage
+from folderManager import initialize
 
 # Import custom modules
 import spatialIO as spio
@@ -16,18 +17,11 @@ def main(options):
 
     # Prepare the folders for outputs:
     initialize(options)
-
     # For direct file input
     if not os.path.isdir(options['src']):
         options['filePath'] = options['src']
-        filename = basename(os.path.splitext(options['filePath'])[0])
 
-        forest_mask, forest_zones, forest_outline, forest_isolated, \
-            forest_selected = processing(options)
-
-        # export raster results
-        export(options, filename, forest_mask, forest_zones, forest_outline,
-               forest_isolated, forest_selected)
+        processing(options)
 
     if os.path.isdir(options['src']):
         if not options['src'].endswith('/'):
@@ -41,32 +35,9 @@ def main(options):
             # File checker
             if file_list.lower().endswith('.tif'):
                 options['filePath'] = inputDir + file_list
-                filename = basename(os.path.splitext(options['filePath'])[0])
 
                 # Process each file
-                forest_mask, forest_zones, forest_outline, forest_isolated, \
-                    forest_selected = processing(options)
-
-                # export raster results
-                export(options, filename, forest_mask, forest_zones,
-                       forest_outline, forest_isolated, forest_selected)
-
-
-def initialize(options):
-    '''
-    Prepare the folders for outputs:
-    '''
-
-    if not os.path.isdir(options['dst']):
-        os.mkdir(options['dst'])
-    if not options['dst'].endswith('/'):
-        options['dst'] = options['dst'] + '/'
-    tifdst = options['dst'] + 'tif'
-    if not os.path.exists(tifdst):
-        os.makedirs(tifdst)
-    shpdst = options['dst'] + 'shp'
-    if not os.path.exists(shpdst):
-        os.makedirs(shpdst)
+                processing(options)
 
 
 def processing(options):
@@ -123,8 +94,12 @@ def processing(options):
     # Computing contour and isolated trees for selection purposes
     forest_selected = forest_isolated + forest_outline
 
-    return forest_mask, forest_zones, forest_outline, forest_isolated, \
-        forest_selected
+    filename = basename(os.path.splitext(options['filePath'])[0])
+
+    export(options, filename, forest_mask, forest_zones, forest_outline,
+           forest_isolated, forest_selected)
+
+    return
 
 
 def filterElementsBySize(elements, size):
@@ -146,19 +121,6 @@ def filterElementsBySize(elements, size):
     match_feat_ID = np.nonzero(matches)[0]
     valid_match_feat_ID = np.setdiff1d(match_feat_ID, [0, num_features])
 
-    # ORing operation
-    # TODO: fix memory issue of numpy in1d
-    # try this ?https://stackoverflow.com/questions/30082052/most-efficient-way-to-implement-numpy-in1d-for-muliple-arrays
-    #     def return_equal(*args):
-    #     rtr=[]
-    #     for i, arr in enumerate(args):
-    #         rtr.append([j for j, e in enumerate(arr) if
-    #                     all(e in a for a in args[0:i]) and
-    #                     all(e in a for a in args[i+1:])])
-    #     return rtr
-    #
-    # >>> return_equal(a,b,c)
-    # [[2, 4], [1, 3], [0, 1]]
     elements_new = np.in1d(labeled_array, valid_match_feat_ID
                            ).reshape(labeled_array.shape)
 

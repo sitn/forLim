@@ -8,6 +8,7 @@ from qgis.core import QgsVectorLayer, QgsMapLayerRegistry
 
 # Import custom modules
 import spatialIO as spio
+from folderManager import initialize
 
 
 def main(options):
@@ -36,27 +37,6 @@ def main(options):
 
             # Process each file
             processing(options, filename)
-
-    if options["AddLayer"]:
-        vlayer = QgsVectorLayer(options['dst'] + 'shp/' + filename +
-                                '_forest_zones.shp', "forest", "ogr")
-        QgsMapLayerRegistry.instance().addMapLayer(vlayer)
-
-
-def initialize(options):
-    '''
-    Prepare the folders for outputs:
-    '''
-    if not os.path.isdir(options['dst']):
-        os.mkdir(options['dst'])
-    if not options['dst'].endswith('/'):
-        options['dst'] = options['dst'] + '/'
-    tifdst = options['dst'] + 'tif'
-    if not os.path.exists(tifdst):
-        os.makedirs(tifdst)
-    shpdst = options['dst'] + 'shp'
-    if not os.path.exists(shpdst):
-        os.makedirs(shpdst)
 
 
 def processing(options, f):

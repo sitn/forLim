@@ -5,6 +5,8 @@ from os.path import basename
 from osgeo import gdal
 import numpy as np
 import scipy.ndimage
+from folderManager import initialize
+
 
 # Custom modules
 import spatialIO as spio
@@ -49,23 +51,6 @@ def main(options):
                 filename + '_forest_mask.tif'
 
             spio.polygonizer(crownsPath, forest_maskPath, polyPath)
-
-
-def initialize(options):
-    '''
-    Prepare the folders for outputs:
-    '''
-
-    if not os.path.isdir(options['dst']):
-        os.mkdir(options['dst'])
-    if not options['dst'].endswith('/'):
-        options['dst'] = options['dst'] + '/'
-    tifdst = options['dst'] + 'tif'
-    if not os.path.exists(tifdst):
-        os.makedirs(tifdst)
-    shpdst = options['dst'] + 'shp'
-    if not os.path.exists(shpdst):
-        os.makedirs(shpdst)
 
 
 def processing(options):
