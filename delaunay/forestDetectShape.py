@@ -91,7 +91,6 @@ def processing(options):
     forest_mask = data > 0
 
     # Fill the small holes which are to small to be considered as clearings
-    print(options['MaxAreaThres'])
     holes = forest_mask < 1
     holes = filterElementsBySize(holes, options['MaxAreaThres'])
 

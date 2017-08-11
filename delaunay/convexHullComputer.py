@@ -11,7 +11,6 @@ import spatialIO as spio
 
 
 def main(options):
-    print 'Computing convex hulls'
 
     # Prepare the folders for outputs:
     initialize(options)
@@ -82,8 +81,6 @@ def processing(options, f):
     # ds_triangles = driver.Open(trianglesPath, 0)
     # triangles = ds_triangles.GetLayer()
     triangles = QgsVectorLayer(trianglesPath, "triangles", "ogr")
-    if not triangles.isValid():
-        print "Layer triangles failed to load!"
 
     #  Create the new layers to store forest and wooden pasture convex hulls
     CHsForestPath = options['dst'] + 'shp/' + f + '_convexHulls_forest.shp'
