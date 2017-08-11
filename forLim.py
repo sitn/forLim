@@ -516,6 +516,10 @@ class forLim:
                     'args': args
                 }
 
+                f = open(args['Path_output'] + '/forlim_medatata.txt', 'w')
+                f.write(str(options))
+                f.close()
+
                 for f in enumerate(files):
                     self.dlg.progressBar.setValue(f[0]+2)
                     args['Path_input'] = f[1]
