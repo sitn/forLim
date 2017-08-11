@@ -146,19 +146,6 @@ def filterElementsBySize(elements, size):
     match_feat_ID = np.nonzero(matches)[0]
     valid_match_feat_ID = np.setdiff1d(match_feat_ID, [0, num_features])
 
-    # ORing operation
-    # TODO: fix memory issue of numpy in1d
-    # try this ?https://stackoverflow.com/questions/30082052/most-efficient-way-to-implement-numpy-in1d-for-muliple-arrays
-    #     def return_equal(*args):
-    #     rtr=[]
-    #     for i, arr in enumerate(args):
-    #         rtr.append([j for j, e in enumerate(arr) if
-    #                     all(e in a for a in args[0:i]) and
-    #                     all(e in a for a in args[i+1:])])
-    #     return rtr
-    #
-    # >>> return_equal(a,b,c)
-    # [[2, 4], [1, 3], [0, 1]]
     elements_new = np.in1d(labeled_array, valid_match_feat_ID
                            ).reshape(labeled_array.shape)
 
