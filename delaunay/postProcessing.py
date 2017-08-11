@@ -6,6 +6,9 @@ from osgeo import ogr
 from osgeo import osr
 from qgis.core import QgsVectorLayer, QgsMapLayerRegistry
 from folderManager import initialize
+from qgis.analysis import QgsGeometryAnalyzer
+from qgis.core import QgsCoordinateReferenceSystem
+from processing import runalg
 
 # Import custom modules
 import spatialIO as spio
@@ -20,7 +23,7 @@ def main(options):
     if not os.path.isdir(options['src']):
         options['filePath'] = options['src']
         filename = basename(os.path.splitext(options['filePath'])[0])
-        processing(options, filename)
+        dissolve(options, filename)
 
     # For folder input
     if os.path.isdir(options['src']):
@@ -36,122 +39,68 @@ def main(options):
             filename = basename(os.path.splitext(options['filePath'])[0])
 
             # Process each file
-            processing(options, filename)
+            dissolve(options, filename)
+
+    if options["AddLayer"]:
+
+        vlayer = QgsVectorLayer(options['dst'] + 'shp/' + filename +
+                                '_forest_zones.shp', "forest", "ogr")
+        QgsMapLayerRegistry.instance().addMapLayer(vlayer)
 
 
-def processing(options, f):
-    '''
-    Select trees which are on the contour of the forest and isolated trees.
-    '''
-    # Export Grid contour and isolated to crowns values
-    driver = ogr.GetDriverByName('ESRI Shapefile')
-
-    # Loads treetops selection
-    treetopsPath = options['dst'] + 'shp/' + f + '_treetops_selected.shp'
-    # ds_treetops = driver.Open(treetopsPath, 0)
-    # treetops = ds_treetops.GetLayer()
-    treetops = QgsVectorLayer(treetopsPath, 'sommets', 'ogr')
-
-    # Loads crowns selection
-    crownsPath = options['dst'] + 'shp/' + f + '_crowns_selected.shp'
-    # ds_crowns = driver.Open(crownsPath, 0)
-    # crowns = ds_crowns.GetLayer()
-    crowns = QgsVectorLayer(crownsPath, 'couronnes', 'ogr')
-
-
-    # Loads treetops triangulation
-    trianglesPath = options['dst'] + 'shp/' + f + '_treetops_triangles.shp'
-    # ds_triangles = driver.Open(trianglesPath, 0)
-    # triangles = ds_triangles.GetLayer()
-    triangles = QgsVectorLayer(trianglesPath, "triangles", "ogr")
+def dissolve(options, f):
 
     #  Create the new layers to store forest and wooden pasture convex hulls
     CHsForestPath = options['dst'] + 'shp/' + f + '_convexHulls_forest.shp'
-    spio.pathChecker(CHsForestPath)
-
     CHsWoodenPasturePath = options['dst'] + 'shp/' + f + \
         '_convexHulls_wooden_pasture.shp'
-    spio.pathChecker(CHsWoodenPasturePath)
 
-    # Create the convex hulls forest data source
-    ds_CHsForest = driver.CreateDataSource(CHsForestPath)
+    dissolvedF = options['dst'] + 'shp/' + f + '_ch_forest_dissolved.shp'
+    spio.pathChecker(dissolvedF)
+    dissolvedW = options['dst'] + 'shp/' + f + '_ch_wpastures_dissolved.shp'
+    spio.pathChecker(dissolvedW)
 
-    # Create the convex hulls wooden pasture data source
-    ds_CHsWoodenPasture = driver.CreateDataSource(CHsWoodenPasturePath)
+    fLayer = QgsVectorLayer(CHsForestPath, 'Dense forests', 'ogr')
+    wLayer = QgsVectorLayer(CHsWoodenPasturePath, 'Wooden pastures', 'ogr')
 
-    # Create Spatial Reference System
-    srs = osr.SpatialReference()
+    analyzer = QgsGeometryAnalyzer()
+    analyzer.dissolve(wLayer, dissolvedW)
+    analyzer.dissolve(wLayer, dissolvedF)
+    if options["AddLayer"]:
+        dissolvedWLayer = QgsVectorLayer(dissolvedW,
+                                         'Dissolved wooden pastures',
+                                         'ogr')
+        dissolvedFLayer = QgsVectorLayer(dissolvedF,
+                                         'Dissolved dense forest',
+                                         'ogr')
+        QgsMapLayerRegistry.instance().addMapLayer(dissolvedWLayer)
+        QgsMapLayerRegistry.instance().addMapLayer(dissolvedFLayer)
+    return
 
-    # Create layers
-    CHsForest = ds_CHsForest.CreateLayer("forest", srs, ogr.wkbPolygon)
-    CHsWoodenPasture = ds_CHsWoodenPasture.CreateLayer("wooden_pasture",
-                                                       srs, ogr.wkbPolygon)
 
-    # Prepare fields for the forest layer
-    CHsForest.CreateField(ogr.FieldDefn('ID', ogr.OFTInteger))
+def merge(options, layer_suffix):
 
-    # Prepare fields for the wooden pasture layer
-    CHsWoodenPasture.CreateField(ogr.FieldDefn('ID', ogr.OFTInteger))
+    merge_candidates = ''
 
-    # Compute the convex hull for each crown that composes a triangle
+    for f in os.listdir(options['dst'] + '/shp'):
+        if layer_suffix in f:
+            merge_candidates += options['dst'] + 'shp/' + f + ';'
 
-    # Create the matching table for crowns
-    crown_N = []
-    for crown in crowns.getFeatures():
+    merge_candidates = merge_candidates[:-1]
 
-        crown_N.append(crown.GetField("N_1"))
+    dst = options['dst'] + 'shp/merged_' + layer_suffix
 
-    forestRatio = options['forestRatio']
-    WoodenPastureRatio = options['woodenPastureRatio']
+    runalg('qgis:mergevectorlayers', merge_candidates, dst)
 
-    for tri in triangles.getFeatures():
+    if options["AddLayer"]:
+        merged = QgsVectorLayer(dst, 'Merged ' + layer_suffix[:-4], 'ogr')
 
-        # Get the corresponding treetop
-        alpha = treetops.GetFeature(tri['POINTA'])
-        beta = treetops.GetFeature(tri['POINTB'])
-        gamma = treetops.GetFeature(tri['POINTC'])
+        QgsMapLayerRegistry.instance().addMapLayer(merged)
 
-        # Get the corresponding crown
-        # TODO: CHECK RESULTS !!!
-        geom_collection = ogr.Geometry(ogr.wkbGeometryCollection)
-        crown_count = 0
-        if alpha.GetField("N") in crown_N:
-            crown_alpha = crowns.GetFeature(crown_N.index(alpha.GetField('N')))
-            geom_collection.AddGeometry(crown_alpha.geometry())
-            crown_count += 1
 
-        if beta.GetField("N") in crown_N:
-            crown_beta = crowns.GetFeature(crown_N.index(beta.GetField('N')))
-            geom_collection.AddGeometry(crown_beta.geometry())
-            crown_count += 1
-        if gamma.GetField("N") in crown_N:
-            crown_gamma = crowns.GetFeature(crown_N.index(gamma.GetField('N')))
-            geom_collection.AddGeometry(crown_gamma.geometry())
-            crown_count += 1
-
-        if crown_count == 3:
-            # Create the triplet of crowns
-            convex_hull = geom_collection.ConvexHull()
-
-            # Compute the triplet metrics and the coverage ratio
-            conv_area = ogr.Geometry.Area(convex_hull)
-            crowns_area = ogr.Geometry.Area(geom_collection)
-
-            ratio = crowns_area / conv_area
-            # Store the Convex Hulls in the corresponding category
-            if ratio > forestRatio:
-                convHull = ogr.Feature(CHsForest.GetLayerDefn())
-                convHull.SetField('ID', int(tri.id()))
-                convHull.SetGeometry(convex_hull)
-                CHsForest.CreateFeature(convHull)
-                convHull.Destroy()
-
-            elif ratio > WoodenPastureRatio:
-                convHull = ogr.Feature(CHsWoodenPasture.GetLayerDefn())
-                convHull.SetField('ID', int(tri.id()))
-                convHull.SetGeometry(convex_hull)
-                CHsWoodenPasture.CreateFeature(convHull)
-                convHull.Destroy()
+def clip(clipper, clippee, destination):
+    dst = option['dst']
+    runalg(dst + clippee, dst + clipper, dst, dst + destination)
 
 
 if __name__ == "__main__":

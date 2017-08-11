@@ -38,11 +38,6 @@ def main(options):
             # Process each file
             processing(options, filename)
 
-    if options["AddLayer"]:
-        vlayer = QgsVectorLayer(options['dst'] + 'shp/' + filename +
-                                '_forest_zones.shp', "forest", "ogr")
-        QgsMapLayerRegistry.instance().addMapLayer(vlayer)
-
 
 def processing(options, f):
     '''

@@ -17,18 +17,11 @@ def main(options):
 
     # Prepare the folders for outputs:
     initialize(options)
-
     # For direct file input
     if not os.path.isdir(options['src']):
         options['filePath'] = options['src']
-        filename = basename(os.path.splitext(options['filePath'])[0])
 
-        forest_mask, forest_zones, forest_outline, forest_isolated, \
-            forest_selected = processing(options)
-
-        # export raster results
-        export(options, filename, forest_mask, forest_zones, forest_outline,
-               forest_isolated, forest_selected)
+        processing(options)
 
     if os.path.isdir(options['src']):
         if not options['src'].endswith('/'):
@@ -42,15 +35,9 @@ def main(options):
             # File checker
             if file_list.lower().endswith('.tif'):
                 options['filePath'] = inputDir + file_list
-                filename = basename(os.path.splitext(options['filePath'])[0])
 
                 # Process each file
-                forest_mask, forest_zones, forest_outline, forest_isolated, \
-                    forest_selected = processing(options)
-
-                # export raster results
-                export(options, filename, forest_mask, forest_zones,
-                       forest_outline, forest_isolated, forest_selected)
+                processing(options)
 
 
 def processing(options):
@@ -107,8 +94,12 @@ def processing(options):
     # Computing contour and isolated trees for selection purposes
     forest_selected = forest_isolated + forest_outline
 
-    return forest_mask, forest_zones, forest_outline, forest_isolated, \
-        forest_selected
+    filename = basename(os.path.splitext(options['filePath'])[0])
+
+    export(options, filename, forest_mask, forest_zones, forest_outline,
+           forest_isolated, forest_selected)
+
+    return
 
 
 def filterElementsBySize(elements, size):

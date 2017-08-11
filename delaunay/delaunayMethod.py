@@ -5,8 +5,7 @@ import treeDetectTops
 import treeDetectCrowns
 import treeSelector
 import convexHullComputer
-import convexHullComputer
-
+import postProcessing
 
 def main(self, options, current_tile):
     '''
@@ -35,7 +34,6 @@ def processing(self, options, current_tile):
     ###################################
     #  1. Treetops extraction         #
     ###################################
-
     # run Matthew Parkan's treeDetectLmax modified version
     self.dlg.label_printActualProcess.setText(u'Running tree detection for' +
                                               ' tile: ' + str(current_tile))
@@ -69,6 +67,13 @@ def processing(self, options, current_tile):
     convexHullComputer.main(options)
     f.write("convexHullComputer passed\n")
 
+    ###################################
+    #  5. Dissolve and Clip results    #
+    ###################################
+    self.dlg.label_printActualProcess.setText(u'Postprocessing for' +
+                                              ' tile: ' + str(current_tile))
+    postProcessing.main(options)
+    f.write("Posprocessing passed\n")
     f.close()
 
 
