@@ -490,18 +490,17 @@ class forLim:
 
                 # Set default values of process bar
                 self.dlg.progressBar.reset()
-                self.dlg.progressBar.setMinimum(1)
-                self.dlg.progressBar.setMaximum(nfiles+9)
+                self.dlg.progressBar.setMinimum(0)
+                self.dlg.progressBar.setMaximum(nfiles)
 
                 # Print progress on user window
                 self.dlg.label_printActualProcess.setText("Processing tiles..")
-                self.dlg.progressBar.setValue(1)
-                QApplication.processEvents()
+                self.dlg.progressBar.setValue(0)
+                # QApplication.processEvents()
 
                 ###################################
                 #  Delaunay's triangulation    #
                 ###################################
-                self.iface.actionShowPythonDialog().trigger()
 
                 options = {
                     'WinRad': int(args['GradConvDiameter']),
@@ -520,8 +519,15 @@ class forLim:
                 f.write(str(options))
                 f.close()
 
+                i = 0
                 for f in enumerate(files):
-                    self.dlg.progressBar.setValue(f[0]+2)
+                    i += 1
+                    self.dlg.label_printActualProcess \
+                        .setText("Processing tile " + str(i) + "/" +
+                                 str(len((files))))
+                    self.dlg.progressBar.setValue(i)
                     args['Path_input'] = f[1]
                     options['src'] = str(args['Path_input'])
                     delaunayMethod.main(options)
+
+                self.dlg.label_printActualProcess.setText(u'Calcul terminé')
