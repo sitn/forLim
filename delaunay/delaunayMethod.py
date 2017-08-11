@@ -5,6 +5,7 @@ import treeDetectTops
 import treeDetectCrowns
 import treeSelector
 import convexHullComputer
+import convexHullComputer
 
 
 def main(self, options, current_tile):
@@ -67,7 +68,9 @@ def processing(self, options, current_tile):
                                               ' tile: ' + str(current_tile))
     convexHullComputer.main(options)
     f.write("convexHullComputer passed\n")
+
     f.close()
+
 
 if __name__ == "__main__":
 

@@ -5,10 +5,10 @@ from os.path import basename
 from osgeo import ogr
 from osgeo import osr
 from qgis.core import QgsVectorLayer, QgsMapLayerRegistry
+from folderManager import initialize
 
 # Import custom modules
 import spatialIO as spio
-from folderManager import initialize
 
 
 def main(options):
@@ -38,11 +38,6 @@ def main(options):
             # Process each file
             processing(options, filename)
 
-    if options["AddLayer"]:
-        vlayer = QgsVectorLayer(options['dst'] + 'shp/' + filename +
-                                '_forest_zones.shp', "forest", "ogr")
-        QgsMapLayerRegistry.instance().addMapLayer(vlayer)
-
 
 def processing(options, f):
     '''
@@ -53,13 +48,16 @@ def processing(options, f):
 
     # Loads treetops selection
     treetopsPath = options['dst'] + 'shp/' + f + '_treetops_selected.shp'
-    ds_treetops = driver.Open(treetopsPath, 0)
-    treetops = ds_treetops.GetLayer()
+    # ds_treetops = driver.Open(treetopsPath, 0)
+    # treetops = ds_treetops.GetLayer()
+    treetops = QgsVectorLayer(treetopsPath, 'sommets', 'ogr')
 
     # Loads crowns selection
     crownsPath = options['dst'] + 'shp/' + f + '_crowns_selected.shp'
-    ds_crowns = driver.Open(crownsPath, 0)
-    crowns = ds_crowns.GetLayer()
+    # ds_crowns = driver.Open(crownsPath, 0)
+    # crowns = ds_crowns.GetLayer()
+    crowns = QgsVectorLayer(crownsPath, 'couronnes', 'ogr')
+
 
     # Loads treetops triangulation
     trianglesPath = options['dst'] + 'shp/' + f + '_treetops_triangles.shp'
@@ -99,7 +97,8 @@ def processing(options, f):
 
     # Create the matching table for crowns
     crown_N = []
-    for crown in crowns:
+    for crown in crowns.getFeatures():
+
         crown_N.append(crown.GetField("N_1"))
 
     forestRatio = options['forestRatio']

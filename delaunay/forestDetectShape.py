@@ -7,6 +7,7 @@ from osgeo import gdal
 from osgeo import gdalconst
 import numpy as np
 import scipy.ndimage
+from folderManager import initialize
 
 # Import custom modules
 import spatialIO as spio
@@ -50,23 +51,6 @@ def main(options):
                 # export raster results
                 export(options, filename, forest_mask, forest_zones,
                        forest_outline, forest_isolated, forest_selected)
-
-
-def initialize(options):
-    '''
-    Prepare the folders for outputs:
-    '''
-
-    if not os.path.isdir(options['dst']):
-        os.mkdir(options['dst'])
-    if not options['dst'].endswith('/'):
-        options['dst'] = options['dst'] + '/'
-    tifdst = options['dst'] + 'tif'
-    if not os.path.exists(tifdst):
-        os.makedirs(tifdst)
-    shpdst = options['dst'] + 'shp'
-    if not os.path.exists(shpdst):
-        os.makedirs(shpdst)
 
 
 def processing(options):
