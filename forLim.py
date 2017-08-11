@@ -411,7 +411,7 @@ class forLim:
                 QMessageBox.warning(None, "Erreur(s)", error_msg)
             else:
 
-                args = {
+                options = {
                     # Chemin d'accès au Modèle Numérique de Canopée (entrée)
                     "Path_input":
                     str(self.dlg.LE_input.text()),
@@ -419,7 +419,7 @@ class forLim:
                     "Path_output":
                     str(self.dlg.LE_output.text()),
                     # Hauteur de la fenêtre de lissage
-                    "GradConvDiameter":
+                    "WinRad":
                     int(self.dlg.LE_gradConvDiameter.text()),
                     # Hauteur minimale des arbres
                     "MinHeightThres":
@@ -428,10 +428,10 @@ class forLim:
                     "MaxHeightThres":
                     int(self.dlg.LE_maxHeightThres.text()),
                     # Degré de recouvrement pour la foret dense
-                    "Deg_Recouv_FD":
+                    "forestRatio":
                     float(self.dlg.LE_DRFD.text()),
                     # Degré de recouvrement pour le paturage boise
-                    "Deg_Recouv_PB":
+                    "woodenPastureRatio":
                     float(self.dlg.LE_DRPB.text()),
                     # largeur minimale forêt
                     "WidthThres":
@@ -440,7 +440,7 @@ class forLim:
                     "MinAreaThres":
                     int(self.dlg.LE_minForSurfThres.text()),
                     # surface minimum clairière
-                    "HoleSizeThres":
+                    "MaxAreaThres":
                     int(self.dlg.LE_minClearingSurfThres.text()),
                     # Ajouter le shapefile forêt
                     "AddLayer":
@@ -460,17 +460,20 @@ class forLim:
                     bool(self.dlg.CB_removeHedges.isChecked()),
                     "Path_hedges":
                     str(self.dlg.LE_hedges.text()),
+                    "plugin":
+                    True
                 }
 
                 now_time = datetime.now()
 
                 name = "forLim_" + str(uuid4())
-                args["Path_output"] = os.path.join(args["Path_output"], name)
-                os.mkdir(args["Path_output"])
+                options["Path_output"] = \
+                    os.path.join(options["Path_output"], name)
+                os.mkdir(options["Path_output"])
 
                 # Get file list
-                path_input = args["Path_input"]
-                files = args["Path_input"].split(";")
+                path_input = options["Path_input"]
+                files = options["Path_input"].split(";")
                 nfiles = len(files)
 
                 # Set default values of process bar
@@ -487,20 +490,10 @@ class forLim:
                 #  Delaunay's triangulation    #
                 ###################################
 
-                options = {
-                    'WinRad': int(args['GradConvDiameter']),
-                    'MinHeightThres': float(args['MinHeightThres']),
-                    'src': str(args['Path_input']),
-                    'dst': str(args['Path_output']),
-                    'MinAreaThres': int(args['MinAreaThres']),
-                    'MaxAreaThres': int(args['HoleSizeThres']),
-                    'forestRatio': int(args['Deg_Recouv_FD']),
-                    'woodenPastureRatio': int(args['Deg_Recouv_PB']),
-                    'plugin': True,
-                    'args': args
-                }
+                options['src'] = str(options['Path_input'])
+                options['dst'] = str(options['Path_output'])
 
-                f = open(args['Path_output'] + '/forlim_medatata.txt', 'w')
+                f = open(options['Path_output'] + '/forlim_medatata.txt', 'w')
                 f.write(str(options))
                 f.close()
 
@@ -510,8 +503,8 @@ class forLim:
                     self.dlg.label_printActualProcess \
                         .setText("Processing tile " + str(i) + "/" +
                                  str(len((files))))
-                    args['Path_input'] = f[1]
-                    options['src'] = str(args['Path_input'])
+                    options['Path_input'] = f[1]
+                    options['src'] = str(options['Path_input'])
                     delaunayMethod.main(self, options, i)
                     self.dlg.progressBar.setValue(i)
 

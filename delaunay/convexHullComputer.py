@@ -38,7 +38,7 @@ def main(options):
             # Process each file
             processing(options, filename)
 
-    if options["args"]["AddLayer"]:
+    if options["AddLayer"]:
         vlayer = QgsVectorLayer(options['dst'] + 'shp/' + filename +
                                 '_forest_zones.shp', "forest", "ogr")
         QgsMapLayerRegistry.instance().addMapLayer(vlayer)
@@ -120,8 +120,8 @@ def processing(options, f):
     for crown in crowns:
         crown_N.append(crown.GetField("N_1"))
 
-    forestRatio = options['args']['Deg_Recouv_FD']
-    WoodenPastureRatio = options['args']['Deg_Recouv_PB']
+    forestRatio = options['forestRatio']
+    WoodenPastureRatio = options['woodenPastureRatio']
 
     for tri in triangles.getFeatures():
 
