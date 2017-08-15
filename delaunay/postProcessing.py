@@ -88,7 +88,7 @@ def merge(options, layer_suffix):
 
     merge_candidates = merge_candidates[:-1]
 
-    dst = options['dst'] + 'shp/merged_' + layer_suffix
+    dst = options['dst'] + 'shp/merged' + layer_suffix
 
     runalg('qgis:mergevectorlayers', merge_candidates, dst)
 
@@ -105,30 +105,32 @@ def clip(options):
     multiF = False
     for f in os.listdir(options['dst'] + '/shp'):
         if 'merged_forest_zones.shp' in f:  # TODO: CHECK THIS!!!
-            forest_zones += options['dst'] + 'shp/' + f
             multi = True
+    forest_zones = options['dst'] + 'shp/merged_forest_zones.shp'
 
     if not multiF:
         for f in os.listdir(options['dst'] + '/shp'):
             if 'forest_zones.shp' in f:
-                forest_zones += options['dst'] + 'shp/' + f
+                forest_zones = options['dst'] + 'shp/' + f
 
     multiW = False
     for f in os.listdir(options['dst'] + '/shp'):
         if 'merged_ch_wpastures_dissolved.shp' in f:
-            wooden_pastures += options['dst'] + 'shp/' + f
             multi = True
+
+    wooden_pastures = options['dst'] + 'shp/' + \
+        'merged_ch_wpastures_dissolved.shp'
 
     if not multiW:
         for f in os.listdir(options['dst'] + '/shp'):
             if '_ch_wpastures_dissolved.shp' in f:
-                wooden_pastures += options['dst'] + 'shp/' + f
+                wooden_pastures = options['dst'] + 'shp/' + f
 
     result_diff = dst + 'shp/' + 'difference_forest_zones.shp'
     result_deag = dst + 'shp/' + 'deagragated_forest_zones.shp'
-
     runalg('qgis:difference', forest_zones, wooden_pastures, False,
            result_diff)
+
     runalg('qgis:multiparttosingleparts', result_diff, result_deag)
 
     forest_raw = QgsVectorLayer(result_deag, 'ToFilter ', 'ogr')
@@ -136,18 +138,20 @@ def clip(options):
     features_to_remove = []
 
     for f in forest_raw.getFeatures():
-
-        if f.geometry().area() < options['MinAreaThres']:
-            features_to_remove.append(f.id())
+        if f.geometry() is not None:
+            if f.geometry().area() < options['MinAreaThres']:
+                features_to_remove.append(f.id())
+            elif f.geometry().area() >= options['MinAreaThres']:
+                geom = f.geometry().simplify(10)
+                geom = geom.smooth(4, 0.25)
+                dp.changeGeometryValues({f.id(): geom})
         else:
-            geom = f.geometry().simplify(10)
-            geom = geom.smooth(4, 0.25)
-            dp.changeGeometryValues({f.id(): geom})
+            features_to_remove.append(f.id())
 
     dp.deleteFeatures(features_to_remove)
 
     if options["AddLayer"]:
-        forest = QgsVectorLayer(result_deag, 'Legal forest ', 'ogr')
+        forest = QgsVectorLayer(result_deag, 'Final forLim forest ', 'ogr')
         QgsMapLayerRegistry.instance().addMapLayer(forest)
 
 
