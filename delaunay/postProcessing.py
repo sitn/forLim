@@ -65,7 +65,7 @@ def dissolve(options, f):
 
     analyzer = QgsGeometryAnalyzer()
     analyzer.dissolve(wLayer, dissolvedW)
-    analyzer.dissolve(wLayer, dissolvedF)
+    analyzer.dissolve(fLayer, dissolvedF)
     if options["AddLayer"]:
         dissolvedWLayer = QgsVectorLayer(dissolvedW,
                                          'Dissolved wooden pastures',
@@ -104,7 +104,7 @@ def clip(options):
     dst = options['dst']
     multiF = False
     for f in os.listdir(options['dst'] + '/shp'):
-        if 'merged_forest_zones.shp' in f:  # TODO: CHECK THIS!!!
+        if 'merged_forest_zones.shp' in f:
             multi = True
     forest_zones = options['dst'] + 'shp/merged_forest_zones.shp'
 
@@ -113,6 +113,7 @@ def clip(options):
             if 'forest_zones.shp' in f:
                 forest_zones = options['dst'] + 'shp/' + f
 
+    print(forest_zones)
     multiW = False
     for f in os.listdir(options['dst'] + '/shp'):
         if 'merged_ch_wpastures_dissolved.shp' in f:
@@ -131,6 +132,7 @@ def clip(options):
     runalg('qgis:difference', forest_zones, wooden_pastures, False,
            result_diff)
 
+    print(result_diff, result_deag)
     runalg('qgis:multiparttosingleparts', result_diff, result_deag)
 
     forest_raw = QgsVectorLayer(result_deag, 'ToFilter ', 'ogr')
@@ -141,10 +143,10 @@ def clip(options):
         if f.geometry() is not None:
             if f.geometry().area() < options['MinAreaThres']:
                 features_to_remove.append(f.id())
-            elif f.geometry().area() >= options['MinAreaThres']:
-                geom = f.geometry().simplify(10)
-                geom = geom.smooth(4, 0.25)
-                dp.changeGeometryValues({f.id(): geom})
+            # elif f.geometry().area() >= options['MinAreaThres']:
+            #     # geom = f.geometry().simplify(2)
+            #     geom = f.geometry().smooth(4, 0.25)
+            #     dp.changeGeometryValues({f.id(): geom})
         else:
             features_to_remove.append(f.id())
 
