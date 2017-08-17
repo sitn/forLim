@@ -84,19 +84,15 @@ def processing(options):
 
     # Computing outline
     forest_eroded = scipy.ndimage.binary_erosion(forest_zones, kernel)
-    forest_outline = forest_zones - forest_eroded
-
-    # Computing inner elements
-    forest_inside = forest_zones - forest_outline
-
     # Computing small elements
     forest_isolated = forest_mask - forest_zones
     # Computing contour and isolated trees for selection purposes
-    forest_selected = forest_isolated + forest_outline
+    forest_selected = forest_isolated + (forest_zones - forest_eroded)
 
     filename = basename(os.path.splitext(options['filePath'])[0])
 
-    export(options, filename, forest_mask, forest_zones, forest_outline,
+    export(options, filename, forest_mask, forest_zones,
+           (forest_zones - forest_eroded),
            forest_isolated, forest_selected)
 
     return
@@ -110,9 +106,6 @@ def filterElementsBySize(elements, size):
     # Label the different zones
     labeled_array, num_features = scipy.ndimage.label(
         elements, structure=None, output=np.int)
-
-    # Initiate the new elements array
-    # elements_new = np.zeros((RasterYSize, RasterXSize), dtype=np.bool)
 
     # filter the elements by size
     matches = np.bincount(labeled_array.ravel()) > size
