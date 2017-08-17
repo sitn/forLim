@@ -11,8 +11,6 @@ from osgeo import gdalconst
 import numpy as np
 import scipy.signal
 import scipy.ndimage
-from folderManager import initialize
-
 
 # Custom modules
 import spatialIO as spio
@@ -47,6 +45,23 @@ def main(options):
             treetopsPath = options['dst'] + 'shp/' + filename + '_treetops.shp'
             spio.pointShpWriter(treetopsPath, trees['prj_wkt'], trees['xpos'],
                                 trees['ypos'], trees['height'], 'H')
+
+
+def initialize(options):
+    '''
+    Prepare the folders for outputs:
+    '''
+
+    if not os.path.isdir(options['dst']):
+        os.mkdir(options['dst'])
+    if not options['dst'].endswith('/'):
+        options['dst'] = options['dst'] + '/'
+    tifdst = options['dst'] + 'tif'
+    if not os.path.exists(tifdst):
+        os.makedirs(tifdst)
+    shpdst = options['dst'] + 'shp'
+    if not os.path.exists(shpdst):
+        os.makedirs(shpdst)
 
 
 def processCHM(options):

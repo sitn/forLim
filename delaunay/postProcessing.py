@@ -65,7 +65,7 @@ def dissolve(options, f):
 
     analyzer = QgsGeometryAnalyzer()
     analyzer.dissolve(wLayer, dissolvedW)
-    analyzer.dissolve(wLayer, dissolvedF)
+    analyzer.dissolve(fLayer, dissolvedF)
     if options["AddLayer"]:
         dissolvedWLayer = QgsVectorLayer(dissolvedW,
                                          'Dissolved wooden pastures',
@@ -88,19 +88,73 @@ def merge(options, layer_suffix):
 
     merge_candidates = merge_candidates[:-1]
 
-    dst = options['dst'] + 'shp/merged_' + layer_suffix
+    dst = options['dst'] + 'shp/merged' + layer_suffix
 
     runalg('qgis:mergevectorlayers', merge_candidates, dst)
 
     if options["AddLayer"]:
         merged = QgsVectorLayer(dst, 'Merged ' + layer_suffix[:-4], 'ogr')
-
         QgsMapLayerRegistry.instance().addMapLayer(merged)
 
 
-def clip(clipper, clippee, destination):
-    dst = option['dst']
-    runalg(dst + clippee, dst + clipper, dst, dst + destination)
+def clip(options):
+
+    forest_zones = ''
+    wooden_pastures = ''
+    dst = options['dst']
+    multiF = False
+    for f in os.listdir(options['dst'] + '/shp'):
+        if 'merged_forest_zones.shp' in f:
+            multi = True
+    forest_zones = options['dst'] + 'shp/merged_forest_zones.shp'
+
+    if not multiF:
+        for f in os.listdir(options['dst'] + '/shp'):
+            if 'forest_zones.shp' in f:
+                forest_zones = options['dst'] + 'shp/' + f
+
+    print(forest_zones)
+    multiW = False
+    for f in os.listdir(options['dst'] + '/shp'):
+        if 'merged_ch_wpastures_dissolved.shp' in f:
+            multi = True
+
+    wooden_pastures = options['dst'] + 'shp/' + \
+        'merged_ch_wpastures_dissolved.shp'
+
+    if not multiW:
+        for f in os.listdir(options['dst'] + '/shp'):
+            if '_ch_wpastures_dissolved.shp' in f:
+                wooden_pastures = options['dst'] + 'shp/' + f
+
+    result_diff = dst + 'shp/' + 'difference_forest_zones.shp'
+    result_deag = dst + 'shp/' + 'deagragated_forest_zones.shp'
+    runalg('qgis:difference', forest_zones, wooden_pastures, False,
+           result_diff)
+
+    print(result_diff, result_deag)
+    runalg('qgis:multiparttosingleparts', result_diff, result_deag)
+
+    forest_raw = QgsVectorLayer(result_deag, 'ToFilter ', 'ogr')
+    dp = forest_raw.dataProvider()
+    features_to_remove = []
+
+    for f in forest_raw.getFeatures():
+        if f.geometry() is not None:
+            if f.geometry().area() < options['MinAreaThres']:
+                features_to_remove.append(f.id())
+            # elif f.geometry().area() >= options['MinAreaThres']:
+            #     # geom = f.geometry().simplify(2)
+            #     geom = f.geometry().smooth(4, 0.25)
+            #     dp.changeGeometryValues({f.id(): geom})
+        else:
+            features_to_remove.append(f.id())
+
+    dp.deleteFeatures(features_to_remove)
+
+    if options["AddLayer"]:
+        forest = QgsVectorLayer(result_deag, 'Final forLim forest ', 'ogr')
+        QgsMapLayerRegistry.instance().addMapLayer(forest)
 
 
 if __name__ == "__main__":

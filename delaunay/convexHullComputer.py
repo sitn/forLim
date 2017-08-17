@@ -86,9 +86,11 @@ def processing(options, f):
 
     # Prepare fields for the forest layer
     CHsForest.CreateField(ogr.FieldDefn('ID', ogr.OFTInteger))
+    CHsForest.CreateField(ogr.FieldDefn('ratio', ogr.OFTReal))
 
     # Prepare fields for the wooden pasture layer
     CHsWoodenPasture.CreateField(ogr.FieldDefn('ID', ogr.OFTInteger))
+    CHsWoodenPasture.CreateField(ogr.FieldDefn('ratio', ogr.OFTReal))
 
     # Compute the convex hull for each crown that composes a triangle
 
@@ -138,6 +140,7 @@ def processing(options, f):
             if ratio > forestRatio:
                 convHull = ogr.Feature(CHsForest.GetLayerDefn())
                 convHull.SetField('ID', int(tri.id()))
+                convHull.SetField('ratio', ratio)
                 convHull.SetGeometry(convex_hull)
                 CHsForest.CreateFeature(convHull)
                 convHull.Destroy()
@@ -145,6 +148,7 @@ def processing(options, f):
             elif ratio > WoodenPastureRatio:
                 convHull = ogr.Feature(CHsWoodenPasture.GetLayerDefn())
                 convHull.SetField('ID', int(tri.id()))
+                convHull.SetField('ratio', ratio)
                 convHull.SetGeometry(convex_hull)
                 CHsWoodenPasture.CreateFeature(convHull)
                 convHull.Destroy()

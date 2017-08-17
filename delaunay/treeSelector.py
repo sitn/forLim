@@ -11,7 +11,7 @@ import spatialIO as spio
 
 # Check whether we're on QGIS or not
 import qgis.utils
-
+from qgis.core import QgsVectorLayer
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
@@ -109,6 +109,20 @@ def processing(options, f):
            crownsSelectedPath)
     runalg('qgis:delaunaytriangulation',
            treetopsSelectedPath, treetopsTrianglesPath)
+
+    #  Remove triangles with perimeter hight than threshold
+    summit = QgsVectorLayer(treetopsTrianglesPath, 'triangles', 'ogr')
+    toDelete = []
+
+    for f in summit.getFeatures():
+        if f.geometry() is not None:
+            if f.geometry().length() > 100:  # TODO: fix that from UI input!!!
+                toDelete.append(f.id())
+        else:
+            toDelete.append(f.id())
+
+    summit.dataProvider().deleteFeatures(toDelete)
+
 
 
 if __name__ == "__main__":

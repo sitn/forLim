@@ -510,14 +510,13 @@ class forLim:
                     delaunayMethod.main(self, options, i)
                     self.dlg.progressBar.setValue(i)
                 # Merge tiles
-                merge(options, '_forest_zones.shp')
-                merge(options, '_ch_wpastures_dissolved.shp')
-                merge(options, '_ch_forest_dissolved.shp')
+                if i > 1:
+                    merge(options, '_forest_zones.shp')
+                    merge(options, '_ch_wpastures_dissolved.shp')
+                    merge(options, '_ch_forest_dissolved.shp')
 
                 # remove wooden pastures from forest zones
-                clip('merged_ch_wpastures_dissolved.shp',
-                     'merged_forest_zones.shp', options['src'] +
-                     'forest_ne.shp')
+                clip(options)
 
                 # Merge convexhull calculation results
                 self.dlg.label_printActualProcess.setText(u'Calcul terminé')
