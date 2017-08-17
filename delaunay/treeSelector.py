@@ -4,18 +4,8 @@
 import os
 from os.path import basename
 from osgeo import ogr
-
-# Import custom modules
-
 import spatialIO as spio
-
-# Check whether we're on QGIS or not
-import qgis.utils
 from qgis.core import QgsVectorLayer
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from qgis.core import *
-from qgis.gui import *
 from processing import runalg
 from folderManager import initialize
 

@@ -59,17 +59,17 @@ def processing(options):
     ########################################################################
 
     # Compute no-tree/forest binary data
-    forest_mask = data > 0
+    # forest_mask = data > 0
 
     # Fill the small holes which are to small to be considered as clearings
-    holes = forest_mask < 1
+    holes = (data > 0) < 1
     holes = filterElementsBySize(holes, options['MaxAreaThres'])
 
     # Remove the small forest islands which are to small to be considered
     # as forest zones
 
-    forest_mask = holes < 1
-    forest_zones = filterElementsBySize(forest_mask, options['MinAreaThres'])
+    # forest_mask = holes < 1
+    forest_zones = filterElementsBySize((holes < 1), options['MinAreaThres'])
 
     ########################################################################
     # Select trees at the outline of forests zones and isolated trees
@@ -85,13 +85,13 @@ def processing(options):
     # Computing outline
     forest_eroded = scipy.ndimage.binary_erosion(forest_zones, kernel)
     # Computing small elements
-    forest_isolated = forest_mask - forest_zones
+    forest_isolated = (holes < 1) - forest_zones
     # Computing contour and isolated trees for selection purposes
     forest_selected = forest_isolated + (forest_zones - forest_eroded)
 
     filename = basename(os.path.splitext(options['filePath'])[0])
 
-    export(options, filename, forest_mask, forest_zones,
+    export(options, filename, (holes < 1), forest_zones,
            (forest_zones - forest_eroded),
            forest_isolated, forest_selected)
 

@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import forestDetectShape
-import treeDetectTops
-import treeDetectCrowns
+import treeDetectTopsAndCrowns
 import treeSelector
 import convexHullComputer
 import postProcessing
@@ -31,23 +30,16 @@ def processing(self, options, current_tile):
                                               ' tile: ' + str(current_tile))
     forestDetectShape.main(options)
     f.write("forestDetectShape passed\n")
+
+
     ###################################
     #  1. Treetops extraction         #
     ###################################
     # run Matthew Parkan's treeDetectLmax modified version
     self.dlg.label_printActualProcess.setText(u'Running tree detection for' +
                                               ' tile: ' + str(current_tile))
-    treeDetectTops.main(options)
+    treeDetectTopsAndCrowns.main(options)
     f.write("treeDetectTops passed\n")
-
-    ###################################
-    #  2. Tree crowns extraction      #
-    ###################################
-    # run the treecrown detection from the previously calculated treetops
-    self.dlg.label_printActualProcess.setText(u'Running crown detection for' +
-                                              ' tile: ' + str(current_tile))
-    treeDetectCrowns.main(options)
-    f.write("treeDetectCrowns passed\n")
 
     ###################################
     #  3. Trees selection             #

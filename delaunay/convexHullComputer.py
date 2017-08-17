@@ -110,7 +110,6 @@ def processing(options, f):
         gamma = treetops.GetFeature(tri['POINTC'])
 
         # Get the corresponding crown
-        # TODO: CHECK RESULTS !!!
         geom_collection = ogr.Geometry(ogr.wkbGeometryCollection)
         crown_count = 0
         if alpha.GetField("N") in crown_N:
