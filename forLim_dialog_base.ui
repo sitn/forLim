@@ -752,7 +752,7 @@
              <string/>
             </property>
             <property name="text">
-             <string>Degré de recouvrement Pâturage Boisé</string>
+             <string>Degré de recouvrement Forêt Clairsemée</string>
             </property>
            </widget>
            <widget class="QLineEdit" name="LE_DRPB">
