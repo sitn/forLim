@@ -45,11 +45,17 @@ def processing(options, f):
         '_forest_selected.tif'
     crownsPath = options['dst'] + 'shp/' + f + '_crowns.shp'
     crownsStatsPath = options['dst'] + 'shp/' + f + '_crowns_stats.shp'
-
+    outputDir = options["dst"]
+    fileTxt = open(outputDir + "/log.txt", "a")
+    fileTxt.write("gridstatisticsforpolygons started\n")
+    fileTxt.close()
     # get the MAX value
     runalg('saga:gridstatisticsforpolygons', forestSelectedPath,
            crownsPath, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, crownsStatsPath)
-
+    outputDir = options["dst"]
+    fileTxt = open(outputDir + "/log.txt", "a")
+    fileTxt.write("gridstatisticsforpolygons passed\n")
+    fileTxt.close()
     crowns = QgsVectorLayer(crownsStatsPath, 'Crowns stats', 'ogr')
     crowns.selectByExpression('"G01_MAX"=1.0')
     selected_array = crowns.getValues("N", True)
@@ -70,12 +76,27 @@ def processing(options, f):
     treetopsTrianglesPath = options['dst'] + 'shp/' + f + \
         '_treetops_triangles.shp'
 
+    outputDir = options["dst"]
+    fileTxt = open(outputDir + "/log.txt", "a")
+    fileTxt.write("advancedpythonfieldcalculator started\n")
+    fileTxt.close()
+
     runalg('qgis:advancedpythonfieldcalculator', treetopsPath,
            'N', 0, 10, 0, '', 'value = $id', treetopsSelectedPath)
-
-    runalg('qgis:joinattributesbylocation', crownsStatsPath,
-           treetopsSelectedPath, u'contains', 0.0,  0, '', 0,
+    outputDir = options["dst"]
+    fileTxt = open(outputDir + "/log.txt", "a")
+    fileTxt.write("joinattributesbylocation started\n")
+    fileTxt.close()
+    # runalg('qgis:joinattributesbylocation', crownsStatsPath,
+    #        treetopsSelectedPath, u'contains', 0.0,  0, '', 0,
+    #        crownsSelectedPath)
+    runalg('saga:addpointattributestopolygons', crownsStatsPath,
+           treetopsSelectedPath, 'N', False,
            crownsSelectedPath)
+
+    fileTxt = open(outputDir + "/log.txt", "a")
+    fileTxt.write("delaunaytriangulation started\n")
+    fileTxt.close()
     runalg('qgis:delaunaytriangulation',
            treetopsSelectedPath, treetopsTrianglesPath)
 
@@ -87,9 +108,9 @@ def processing(options, f):
     triangles.dataProvider().deleteFeatures(triangles_to_delete_ids[0])
 
     outputDir = options["dst"]
-    f = open(outputDir + "/log.txt", "a")
-    f.write("treeSelector passed\n")
-    f.close()
+    fileTxt = open(outputDir + "/log.txt", "a")
+    fileTxt.write("treeSelector passed\n")
+    fileTxt.close()
 
 
 if __name__ == "__main__":

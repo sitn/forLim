@@ -153,9 +153,9 @@ def processing(options, f):
                 convHull.Destroy()
 
     outputDir = options["dst"]
-    f = open(outputDir + "/log.txt", "a")
-    f.write("convexHull passed\n")
-    f.close()
+    fileTxt = open(outputDir + "/log.txt", "a")
+    fileTxt.write("convexHull passed\n")
+    fileTxt.close()
 
 
 if __name__ == "__main__":
