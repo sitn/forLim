@@ -170,6 +170,7 @@ class forLim:
         self.dlg.LE_maxHeightThres.setValidator(QIntValidator())
         self.dlg.LE_DRFD.setValidator(QDoubleValidator())
         self.dlg.LE_DRPB.setValidator(QDoubleValidator())
+        self.dlg.txt_triangle_peri.setValidator(QDoubleValidator())
         self.dlg.LE_minWidthThres.setValidator(QIntValidator())
         self.dlg.LE_minForSurfThres.setValidator(QIntValidator())
         self.dlg.LE_minClearingSurfThres.setValidator(QIntValidator())
@@ -444,6 +445,9 @@ class forLim:
                     # surface minimum clairière
                     "MaxAreaThres":
                     int(self.dlg.LE_minClearingSurfThres.text()),
+                    # Périmètre max des triangles de Delaunay
+                    "MaxTrianglePerimeter":
+                    float(self.dlg.txt_triangle_peri.text()),
                     # Ajouter le shapefile forêt
                     "AddLayer":
                     bool(self.dlg.CB_addLayer.isChecked()),
@@ -486,7 +490,7 @@ class forLim:
                 # Print progress on user window
                 self.dlg.label_printActualProcess.setText("Processing tiles..")
                 self.dlg.progressBar.setValue(0)
-                # QApplication.processEvents()
+                QApplication.processEvents()
 
                 ###################################
                 #  Delaunay's triangulation    #
@@ -494,7 +498,6 @@ class forLim:
 
                 options['src'] = str(options['Path_input'])
                 options['dst'] = str(options['Path_output'])
-                print (options['dst'])
                 f = open(options['Path_output'] + '/forlim_medatata.txt', 'w')
                 f.write(str(options))
                 f.close()
@@ -520,3 +523,4 @@ class forLim:
 
                 # Merge convexhull calculation results
                 self.dlg.label_printActualProcess.setText(u'Calcul terminé')
+                self.iface.mapCanvas().zoomToFullExtent()

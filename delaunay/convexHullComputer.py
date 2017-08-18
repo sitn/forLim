@@ -53,8 +53,9 @@ def processing(options, f):
 
     # Loads crowns selection
     crownsPath = options['dst'] + 'shp/' + f + '_crowns_selected.shp'
-    ds_crowns = driver.Open(crownsPath, 0)
-    crowns = ds_crowns.GetLayer()
+    # ds_crowns = driver.Open(crownsPath, 0)
+    # crowns = ds_crowns.GetLayer()
+    crowns = QgsVectorLayer(crownsPath, "Crows", "ogr")
 
     # Loads treetops triangulation
     trianglesPath = options['dst'] + 'shp/' + f + '_treetops_triangles.shp'
@@ -94,14 +95,13 @@ def processing(options, f):
 
     # Compute the convex hull for each crown that composes a triangle
 
-    # Create the matching table for crowns
-    crown_N = []
-    for crown in crowns:
-        crown_N.append(crown.GetField("N_1"))
-
+    crown_N = crowns.getValues("N_1", False)[0]
+    del crowns
     forestRatio = options['forestRatio']
     WoodenPastureRatio = options['woodenPastureRatio']
-
+    ds_crowns = driver.Open(crownsPath, 0)
+    crowns = ds_crowns.GetLayer()
+    # TODO: get rid of of python loop
     for tri in triangles.getFeatures():
 
         # Get the corresponding treetop
@@ -110,7 +110,6 @@ def processing(options, f):
         gamma = treetops.GetFeature(tri['POINTC'])
 
         # Get the corresponding crown
-        # TODO: CHECK RESULTS !!!
         geom_collection = ogr.Geometry(ogr.wkbGeometryCollection)
         crown_count = 0
         if alpha.GetField("N") in crown_N:
@@ -152,6 +151,11 @@ def processing(options, f):
                 convHull.SetGeometry(convex_hull)
                 CHsWoodenPasture.CreateFeature(convHull)
                 convHull.Destroy()
+
+    outputDir = options["dst"]
+    f = open(outputDir + "/log.txt", "a")
+    f.write("convexHull passed\n")
+    f.close()
 
 
 if __name__ == "__main__":

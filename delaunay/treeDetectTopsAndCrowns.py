@@ -25,10 +25,22 @@ def main(options):
     if not os.path.isdir(options['src']):
         options['filePath'] = options['src']
         filename = basename(os.path.splitext(options['filePath'])[0])
-        trees = processCHM(options)
+
+        # Find tree tops and crowns
+        trees, crowns, geotransform = processCHM(options)
+
         treetopsPath = options['dst'] + 'shp/' + filename + '_treetops.shp'
         spio.pointShpWriter(treetopsPath, trees['prj_wkt'], trees['xpos'],
                             trees['ypos'], trees['height'], 'H')
+
+        crownsPath = options['dst'] + 'tif/' + filename + '_crowns.tif'
+        spio.rasterWriter(crowns, crownsPath,
+                          geotransform, trees['prj_wkt'], gdal.GDT_Int16)
+        polyPath = options['dst'] + 'shp/' + filename + '_crowns.shp'
+        forest_maskPath = options['dst'] + \
+            'tif/' + filename + '_forest_mask.tif'
+
+        spio.polygonizer(crownsPath, forest_maskPath, polyPath)
 
     # For folder input
     if os.path.isdir(options['src']):
@@ -102,7 +114,19 @@ def processCHM(options):
     pz = data[py, px]  # height value
     mx, my = ApplyGeoTransform(px, py, geotransform)
 
-    return {'xpos': mx, 'ypos': my, 'height': pz, 'prj_wkt': prj_wkt}
+    crowns = scipy.ndimage.watershed_ift(data.astype(np.uint16),
+                                         labeled.astype(np.int32))
+
+    crowns = (crowns == -1) + crowns
+
+    # return crowns, geotransform, prj_wkt
+    outputDir = options["dst"]
+    f = open(outputDir + "/log.txt", "a")
+    f.write("treeDetectTops passed\n")
+    f.close()
+
+    return {'xpos': mx, 'ypos': my, 'height': pz, 'prj_wkt': prj_wkt}, \
+        crowns, geotransform
 
 
 # convert pixel coordinates to geospatial coordinates

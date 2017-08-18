@@ -3,19 +3,8 @@
 
 import os
 from os.path import basename
-from osgeo import ogr
-
-# Import custom modules
-
 import spatialIO as spio
-
-# Check whether we're on QGIS or not
-import qgis.utils
-from qgis.core import QgsVectorLayer
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from qgis.core import *
-from qgis.gui import *
+from qgis.core import QgsVectorLayer, QgsExpression, QgsMapLayerRegistry
 from processing import runalg
 from folderManager import initialize
 
@@ -61,39 +50,19 @@ def processing(options, f):
     runalg('saga:gridstatisticsforpolygons', forestSelectedPath,
            crownsPath, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, crownsStatsPath)
 
-    # Loads new crowns layer in edit mode
-    driver = ogr.GetDriverByName('ESRI Shapefile')
+    crowns = QgsVectorLayer(crownsStatsPath, 'Crowns stats', 'ogr')
+    crowns.selectByExpression('"G01_MAX"=1.0')
+    selected_array = crowns.getValues("N", True)
+    crowns.invertSelection()
+    unselected_array = crowns.getValues("N", True)
+    unselected_crowns_ids = crowns.getValues("$id", True)
+    unselected_top_ids = crowns.getValues('"N" - 1', True)
+    crowns.dataProvider().deleteFeatures(unselected_crowns_ids[0])
 
-    ds_crownsStats = driver.Open(crownsStatsPath, 1)
-    crowns = ds_crownsStats.GetLayer()
-
-    layerDefinition = crowns.GetLayerDefn()
-
-    #  Filter out tree at the forest limit
-    # Find FID of each unselected crown and remove it
-    selected_array = []
-    unselected_array = []
-
-    for feature in crowns:
-        if feature.GetField(1) == 1:  # TODO: USE NAMED FIELD
-            selected_array.append(feature.GetField("N"))
-        else:
-            unselected_array.append(feature.GetField("N"))
-            crowns.DeleteFeature(feature.GetFID())
-
-    ds_crownsStats.Destroy()
     treetopsPath = options['dst'] + 'shp/' + f + '_treetops.shp'
+    treetops = QgsVectorLayer(treetopsPath, 'Tree tops', 'ogr')
 
-    ds_treetops = driver.Open(treetopsPath, 1)
-    treetops = ds_treetops.GetLayer()
-
-    # remove the unselected FIDs
-    for feature in treetops:
-        if (feature.GetFID() + 1) in unselected_array:
-            treetops.DeleteFeature(feature.GetFID())
-
-    # Clear dataSources
-    ds_treetops.Destroy()
+    treetops.dataProvider().deleteFeatures(unselected_top_ids[0])
 
     treetopsSelectedPath = options['dst'] + 'shp/' + f + \
         '_treetops_selected.shp'
@@ -110,19 +79,17 @@ def processing(options, f):
     runalg('qgis:delaunaytriangulation',
            treetopsSelectedPath, treetopsTrianglesPath)
 
-    #  Remove triangles with perimeter hight than threshold
-    summit = QgsVectorLayer(treetopsTrianglesPath, 'triangles', 'ogr')
-    toDelete = []
+    #  Remove triangles with perimeter higher than threshold
+    triangles = QgsVectorLayer(treetopsTrianglesPath, 'triangles', 'ogr')
+    maxPeri = str(options['MaxTrianglePerimeter'])
+    triangles.selectByExpression('$perimeter > ' + maxPeri)
+    triangles_to_delete_ids = triangles.getValues("$id", True)
+    triangles.dataProvider().deleteFeatures(triangles_to_delete_ids[0])
 
-    for f in summit.getFeatures():
-        if f.geometry() is not None:
-            if f.geometry().length() > 100:  # TODO: fix that from UI input!!!
-                toDelete.append(f.id())
-        else:
-            toDelete.append(f.id())
-
-    summit.dataProvider().deleteFeatures(toDelete)
-
+    outputDir = options["dst"]
+    f = open(outputDir + "/log.txt", "a")
+    f.write("treeSelector passed\n")
+    f.close()
 
 
 if __name__ == "__main__":

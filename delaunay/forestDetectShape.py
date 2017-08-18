@@ -59,17 +59,17 @@ def processing(options):
     ########################################################################
 
     # Compute no-tree/forest binary data
-    forest_mask = data > 0
+    # forest_mask = data > 0
 
     # Fill the small holes which are to small to be considered as clearings
-    holes = forest_mask < 1
+    holes = (data > 0) < 1
     holes = filterElementsBySize(holes, options['MaxAreaThres'])
 
     # Remove the small forest islands which are to small to be considered
     # as forest zones
 
-    forest_mask = holes < 1
-    forest_zones = filterElementsBySize(forest_mask, options['MinAreaThres'])
+    # forest_mask = holes < 1
+    forest_zones = filterElementsBySize((holes < 1), options['MinAreaThres'])
 
     ########################################################################
     # Select trees at the outline of forests zones and isolated trees
@@ -84,20 +84,21 @@ def processing(options):
 
     # Computing outline
     forest_eroded = scipy.ndimage.binary_erosion(forest_zones, kernel)
-    forest_outline = forest_zones - forest_eroded
-
-    # Computing inner elements
-    forest_inside = forest_zones - forest_outline
-
     # Computing small elements
-    forest_isolated = forest_mask - forest_zones
+    forest_isolated = (holes < 1) - forest_zones
     # Computing contour and isolated trees for selection purposes
-    forest_selected = forest_isolated + forest_outline
+    forest_selected = forest_isolated + (forest_zones - forest_eroded)
 
     filename = basename(os.path.splitext(options['filePath'])[0])
 
-    export(options, filename, forest_mask, forest_zones, forest_outline,
+    export(options, filename, (holes < 1), forest_zones,
+           (forest_zones - forest_eroded),
            forest_isolated, forest_selected)
+
+    outputDir = options["dst"]
+    f = open(outputDir + "/log.txt", "a")
+    f.write("forestDetectShape passed\n")
+    f.close()
 
     return
 
@@ -110,9 +111,6 @@ def filterElementsBySize(elements, size):
     # Label the different zones
     labeled_array, num_features = scipy.ndimage.label(
         elements, structure=None, output=np.int)
-
-    # Initiate the new elements array
-    # elements_new = np.zeros((RasterYSize, RasterXSize), dtype=np.bool)
 
     # filter the elements by size
     matches = np.bincount(labeled_array.ravel()) > size

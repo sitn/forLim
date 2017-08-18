@@ -210,7 +210,7 @@
           <widget class="QWidget" name="widget_5" native="true">
            <property name="geometry">
             <rect>
-             <x>0</x>
+             <x>10</x>
              <y>270</y>
              <width>331</width>
              <height>241</height>
@@ -428,6 +428,69 @@
             </property>
             <property name="text">
              <string>Diamètre fenêtre lissage hauteur</string>
+            </property>
+           </widget>
+           <widget class="QLineEdit" name="txt_triangle_peri">
+            <property name="geometry">
+             <rect>
+              <x>250</x>
+              <y>130</y>
+              <width>51</width>
+              <height>21</height>
+             </rect>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>8</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>100</string>
+            </property>
+            <property name="maxLength">
+             <number>4</number>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+           <widget class="QLabel" name="label_5">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>130</y>
+              <width>161</width>
+              <height>21</height>
+             </rect>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>8</pointsize>
+             </font>
+            </property>
+            <property name="whatsThis">
+             <string/>
+            </property>
+            <property name="text">
+             <string>Périmètre max des triangles</string>
+            </property>
+           </widget>
+           <widget class="QLabel" name="label_11">
+            <property name="geometry">
+             <rect>
+              <x>310</x>
+              <y>130</y>
+              <width>21</width>
+              <height>21</height>
+             </rect>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>8</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>m</string>
             </property>
            </widget>
           </widget>
