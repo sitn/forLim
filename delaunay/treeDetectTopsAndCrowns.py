@@ -82,7 +82,7 @@ def processCHM(options):
     '''
     data, geotransform, prj_wkt = spio.rasterReader(options['filePath'])
 
-    # filter non realstic data
+    # filter outliers
     data = (data < 60) * (data > 1) * data
 
     # create kernel
@@ -114,6 +114,10 @@ def processCHM(options):
     pz = data[py, px]  # height value
     mx, my = ApplyGeoTransform(px, py, geotransform)
 
+
+    # crowns
+    data = data * 1000
+    labeled = (data == 0) * (-1) + labeled
     crowns = scipy.ndimage.watershed_ift(data.astype(np.uint16),
                                          labeled.astype(np.int32))
 
