@@ -25,7 +25,10 @@ def main(options):
     if not os.path.isdir(options['src']):
         options['filePath'] = options['src']
         filename = basename(os.path.splitext(options['filePath'])[0])
+
+        # Find tree tops and crowns
         trees, crowns, geotransform = processCHM(options)
+
         treetopsPath = options['dst'] + 'shp/' + filename + '_treetops.shp'
         spio.pointShpWriter(treetopsPath, trees['prj_wkt'], trees['xpos'],
                             trees['ypos'], trees['height'], 'H')

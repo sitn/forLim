@@ -49,7 +49,6 @@ def processing(self, options, current_tile):
                                               ' tile: ' + str(current_tile))
     treeSelector.main(options)
     f.write("treeSelector passed\n")
-
     ###################################
     #  4. Convex hulls computation    #
     ###################################
