@@ -66,15 +66,7 @@ def dissolve(options, f):
     analyzer = QgsGeometryAnalyzer()
     analyzer.dissolve(wLayer, dissolvedW)
     analyzer.dissolve(fLayer, dissolvedF)
-    if options["AddLayer"]:
-        dissolvedWLayer = QgsVectorLayer(dissolvedW,
-                                         'Dissolved wooden pastures',
-                                         'ogr')
-        dissolvedFLayer = QgsVectorLayer(dissolvedF,
-                                         'Dissolved dense forest',
-                                         'ogr')
-        QgsMapLayerRegistry.instance().addMapLayer(dissolvedWLayer)
-        QgsMapLayerRegistry.instance().addMapLayer(dissolvedFLayer)
+
     return
 
 
@@ -113,7 +105,6 @@ def clip(options):
             if 'forest_zones.shp' in f:
                 forest_zones = options['dst'] + 'shp/' + f
 
-    print(forest_zones)
     multiW = False
     for f in os.listdir(options['dst'] + '/shp'):
         if 'merged_ch_wpastures_dissolved.shp' in f:
@@ -132,29 +123,24 @@ def clip(options):
     runalg('qgis:difference', forest_zones, wooden_pastures, False,
            result_diff)
 
-    print(result_diff, result_deag)
     runalg('qgis:multiparttosingleparts', result_diff, result_deag)
 
     forest_raw = QgsVectorLayer(result_deag, 'ToFilter ', 'ogr')
     dp = forest_raw.dataProvider()
-    features_to_remove = []
+    forest_raw.selectByExpression('$area < ' + str(options['MinAreaThres']))
+    forest_to_delete_ids = forest_raw.getValues("$id", True)
+    dp.deleteFeatures(forest_to_delete_ids[0])
 
-    for f in forest_raw.getFeatures():
-        if f.geometry() is not None:
-            if f.geometry().area() < options['MinAreaThres']:
-                features_to_remove.append(f.id())
-            # elif f.geometry().area() >= options['MinAreaThres']:
-            #     # geom = f.geometry().simplify(2)
-            #     geom = f.geometry().smooth(4, 0.25)
-            #     dp.changeGeometryValues({f.id(): geom})
-        else:
-            features_to_remove.append(f.id())
-
-    dp.deleteFeatures(features_to_remove)
+    outputDir = options["dst"]
+    f = open(outputDir + "/log.txt", "a")
+    f.write("postProcessing passed\n")
+    f.close()
 
     if options["AddLayer"]:
         forest = QgsVectorLayer(result_deag, 'Final forLim forest ', 'ogr')
         QgsMapLayerRegistry.instance().addMapLayer(forest)
+
+    return result_deag
 
 
 if __name__ == "__main__":

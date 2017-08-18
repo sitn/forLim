@@ -120,6 +120,10 @@ def processCHM(options):
     crowns = (crowns == -1) + crowns
 
     # return crowns, geotransform, prj_wkt
+    outputDir = options["dst"]
+    f = open(outputDir + "/log.txt", "a")
+    f.write("treeDetectTops passed\n")
+    f.close()
 
     return {'xpos': mx, 'ypos': my, 'height': pz, 'prj_wkt': prj_wkt}, \
         crowns, geotransform

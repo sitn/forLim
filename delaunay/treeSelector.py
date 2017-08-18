@@ -58,14 +58,11 @@ def processing(options, f):
     unselected_crowns_ids = crowns.getValues("$id", True)
     unselected_top_ids = crowns.getValues('"N" - 1', True)
     crowns.dataProvider().deleteFeatures(unselected_crowns_ids[0])
-    QgsMapLayerRegistry.instance().addMapLayer(crowns)
 
     treetopsPath = options['dst'] + 'shp/' + f + '_treetops.shp'
     treetops = QgsVectorLayer(treetopsPath, 'Tree tops', 'ogr')
 
     treetops.dataProvider().deleteFeatures(unselected_top_ids[0])
-    # treetops.selectByIds(unselected_top_ids[0])  #  - 1 !?!?
-    QgsMapLayerRegistry.instance().addMapLayer(treetops)
 
     treetopsSelectedPath = options['dst'] + 'shp/' + f + \
         '_treetops_selected.shp'
@@ -84,10 +81,15 @@ def processing(options, f):
 
     #  Remove triangles with perimeter higher than threshold
     triangles = QgsVectorLayer(treetopsTrianglesPath, 'triangles', 'ogr')
-    # TODO: fix that from UI input!!!
-    triangles.selectByExpression('$perimeter > 100')
+    maxPeri = str(options['MaxTrianglePerimeter'])
+    triangles.selectByExpression('$perimeter > ' + maxPeri)
     triangles_to_delete_ids = triangles.getValues("$id", True)
     triangles.dataProvider().deleteFeatures(triangles_to_delete_ids[0])
+
+    outputDir = options["dst"]
+    f = open(outputDir + "/log.txt", "a")
+    f.write("treeSelector passed\n")
+    f.close()
 
 
 if __name__ == "__main__":

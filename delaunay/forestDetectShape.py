@@ -95,6 +95,11 @@ def processing(options):
            (forest_zones - forest_eroded),
            forest_isolated, forest_selected)
 
+    outputDir = options["dst"]
+    f = open(outputDir + "/log.txt", "a")
+    f.write("forestDetectShape passed\n")
+    f.close()
+
     return
 
 
