@@ -4,11 +4,11 @@ import os
 from os.path import basename
 from osgeo import ogr
 from osgeo import osr
-from qgis.core import QgsVectorLayer, QgsMapLayerRegistry
+from qgis.core import QgsVectorLayer
 
 # Import custom modules
-import spatialIO as spio
-from folderManager import initialize
+from .spatialIO import pathChecker
+from .folderManager import initialize
 
 
 def main(options):
@@ -65,11 +65,11 @@ def processing(options, f):
 
     #  Create the new layers to store forest and wooden pasture convex hulls
     CHsForestPath = options['dst'] + 'shp/' + f + '_convexHulls_forest.shp'
-    spio.pathChecker(CHsForestPath)
+    pathChecker(CHsForestPath)
 
     CHsWoodenPasturePath = options['dst'] + 'shp/' + f + \
         '_convexHulls_wooden_pasture.shp'
-    spio.pathChecker(CHsWoodenPasturePath)
+    pathChecker(CHsWoodenPasturePath)
 
     # Create the convex hulls forest data source
     ds_CHsForest = driver.CreateDataSource(CHsForestPath)

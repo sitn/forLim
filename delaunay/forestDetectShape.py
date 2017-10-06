@@ -6,11 +6,11 @@ from os.path import basename
 from osgeo import gdal
 from osgeo import gdalconst
 import numpy as np
-import scipy.ndimage
-from folderManager import initialize
+# # import scipy.ndimage
+from .folderManager import initialize
 
 # Import custom modules
-import spatialIO as spio
+from .spatialIO import pathChecker, rasterReader, rasterWriter, polygonizer
 
 
 def main(options):
@@ -46,7 +46,7 @@ def processing(options):
     legal shape size. Output are forest zones, forest contour, isolated trees
     '''
     # Import CHM raster data
-    data, geotransform, prj_wkt = spio.rasterReader(options['filePath'])
+    data, geotransform, prj_wkt = rasterReader(options['filePath'])
     options['geotransform'] = geotransform
     options['prj_wkt'] = prj_wkt
     RasterYSize, RasterXSize = data.shape
@@ -132,21 +132,21 @@ def export(options, filename, forest_mask, forest_zones, forest_outline,
     '''
     # export raster results
     forest_maskPath = options['dst'] + 'tif/' + filename + '_forest_mask.tif'
-    spio.rasterWriter(forest_mask, forest_maskPath, options['geotransform'],
+    rasterWriter(forest_mask, forest_maskPath, options['geotransform'],
                       options['prj_wkt'], gdal.GDT_Byte)
 
     forest_zonesPath = options['dst'] + 'tif/' + filename + '_forest_zones.tif'
-    spio.rasterWriter(forest_zones, forest_zonesPath, options['geotransform'],
+    rasterWriter(forest_zones, forest_zonesPath, options['geotransform'],
                       options['prj_wkt'], gdal.GDT_Byte)
 
     forest_selectedPath = options['dst'] + 'tif/' + filename + \
         '_forest_selected.tif'
-    spio.rasterWriter(forest_selected, forest_selectedPath,
+    rasterWriter(forest_selected, forest_selectedPath,
                       options['geotransform'], options['prj_wkt'],
                       gdal.GDT_Byte)
     # vectorize the forest zones
     polyPath = options['dst'] + 'shp/' + filename + '_forest_zones.shp'
-    spio.polygonizer(forest_zonesPath, forest_zonesPath, polyPath)
+    polygonizer(forest_zonesPath, forest_zonesPath, polyPath)
 
 
 if __name__ == "__main__":

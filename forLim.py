@@ -1,24 +1,29 @@
 # -*- coding: utf-8 -*-
-from PyQt4.QtCore import QSettings, QTranslator, QCoreApplication, QObject
-from PyQt4.QtCore import SIGNAL
-from PyQt4.QtGui import QAction, QIntValidator, QDoubleValidator, QIcon
-from PyQt4.QtGui import QFileDialog, QMessageBox, QApplication
+from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, QObject
+from qgis.PyQt.QtGui import QIntValidator, QDoubleValidator, QIcon
+from qgis.PyQt.QtWidgets import QAction, QFileDialog, QApplication
 
-from qgis.core import QgsMapLayerRegistry, QgsVectorLayer, QgsSymbolV2
-from qgis.core import QgsRendererCategoryV2, QgsCategorizedSymbolRendererV2
+from qgis.core import QgsVectorLayer
 from qgis.core import QgsCoordinateReferenceSystem
 from qgis.gui import QgsMessageBar
 
+# QgsMapLayerRegistry => Adapt for this change
 # Initialize Qt resources from file resources.py
-import resources_rc
-from forLim_dialog import forLimDialog
+# from . import resources
+from .forLim_dialog import forLimDialog
 from datetime import datetime
 from osgeo import ogr
 from .delaunay import delaunayMethod
-from processing import runalg
+from processing import *
 import os
 from uuid import uuid4 as uuid4
 from .delaunay.postProcessing import merge, clip
+from .delaunay import forestDetectShape
+from .delaunay import treeDetectTopsAndCrowns
+from .delaunay import treeSelector
+from .delaunay import convexHullComputer
+from .delaunay import postProcessing
+from .delaunay import folderManager
 
 
 class forLim:

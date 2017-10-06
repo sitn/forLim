@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import forestDetectShape
-import treeDetectTopsAndCrowns
-import treeSelector
-import convexHullComputer
-import postProcessing
-from qgis.core import QgsVectorLayer, QgsMapLayerRegistry
+from qgis.core import QgsVectorLayer
 
 
 def main(self, options, current_tile):

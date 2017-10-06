@@ -3,10 +3,9 @@
 
 import os
 from os.path import basename
-import spatialIO as spio
-from qgis.core import QgsVectorLayer, QgsExpression, QgsMapLayerRegistry
-from processing import runalg
-from folderManager import initialize
+from qgis.core import QgsVectorLayer, QgsExpression
+# from processing import runalg
+from .folderManager import initialize
 
 
 def main(options):

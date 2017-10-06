@@ -4,14 +4,12 @@ import os
 from os.path import basename
 from osgeo import ogr
 from osgeo import osr
-from qgis.core import QgsVectorLayer, QgsMapLayerRegistry
-from folderManager import initialize
-from qgis.analysis import QgsGeometryAnalyzer
+from qgis.core import QgsVectorLayer
 from qgis.core import QgsCoordinateReferenceSystem
-from processing import runalg
+# from processing import runalg
 
 # Import custom modules
-import spatialIO as spio
+from .spatialIO import pathChecker
 
 
 def main(options):
@@ -45,7 +43,7 @@ def main(options):
 
         vlayer = QgsVectorLayer(options['dst'] + 'shp/' + filename +
                                 '_forest_zones.shp', "forest", "ogr")
-        QgsMapLayerRegistry.instance().addMapLayer(vlayer)
+        # QgsMapLayerRegistry.instance().addMapLayer(vlayer)
 
 
 def dissolve(options, f):
@@ -56,17 +54,17 @@ def dissolve(options, f):
         '_convexHulls_wooden_pasture.shp'
 
     dissolvedF = options['dst'] + 'shp/' + f + '_ch_forest_dissolved.shp'
-    spio.pathChecker(dissolvedF)
+    pathChecker(dissolvedF)
     dissolvedW = options['dst'] + 'shp/' + f + '_ch_wpastures_dissolved.shp'
-    spio.pathChecker(dissolvedW)
+    pathChecker(dissolvedW)
 
     fLayer = QgsVectorLayer(CHsForestPath, 'Dense forests', 'ogr')
     wLayer = QgsVectorLayer(CHsWoodenPasturePath, 'Wooden pastures', 'ogr')
 
-    analyzer = QgsGeometryAnalyzer()
-    analyzer.dissolve(wLayer, dissolvedW)
-    analyzer.dissolve(fLayer, dissolvedF)
-
+    # analyzer = QgsGeometryAnalyzer()
+    # analyzer.dissolve(wLayer, dissolvedW)
+    # analyzer.dissolve(fLayer, dissolvedF)
+    # TODO: use processing instead
     return
 
 
@@ -82,11 +80,11 @@ def merge(options, layer_suffix):
 
     dst = options['dst'] + 'shp/merged' + layer_suffix
 
-    runalg('qgis:mergevectorlayers', merge_candidates, dst)
+    #runalg('qgis:mergevectorlayers', merge_candidates, dst)
 
     if options["AddLayer"]:
         merged = QgsVectorLayer(dst, 'Merged ' + layer_suffix[:-4], 'ogr')
-        QgsMapLayerRegistry.instance().addMapLayer(merged)
+        # QgsMapLayerRegistry.instance().addMapLayer(merged)
 
 
 def clip(options):
@@ -120,10 +118,10 @@ def clip(options):
 
     result_diff = dst + 'shp/' + 'difference_forest_zones.shp'
     result_deag = dst + 'shp/' + 'deagragated_forest_zones.shp'
-    runalg('qgis:difference', forest_zones, wooden_pastures, False,
-           result_diff)
+    # runalg('qgis:difference', forest_zones, wooden_pastures, False,
+    #       result_diff)
 
-    runalg('qgis:multiparttosingleparts', result_diff, result_deag)
+    # runalg('qgis:multiparttosingleparts', result_diff, result_deag)
 
     forest_raw = QgsVectorLayer(result_deag, 'ToFilter ', 'ogr')
     dp = forest_raw.dataProvider()
@@ -138,7 +136,7 @@ def clip(options):
 
     if options["AddLayer"]:
         forest = QgsVectorLayer(result_deag, 'Final forLim forest ', 'ogr')
-        QgsMapLayerRegistry.instance().addMapLayer(forest)
+        # QgsMapLayerRegistry.instance().addMapLayer(forest)
 
     return result_deag
 

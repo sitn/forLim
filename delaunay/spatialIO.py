@@ -54,7 +54,7 @@ from osgeo import gdalconst
 
 import numpy as np
 
-import scipy.ndimage
+# import scipy.ndimage
 
 
 def main():

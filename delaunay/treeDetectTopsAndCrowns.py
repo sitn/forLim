@@ -9,11 +9,11 @@ from osgeo import ogr
 from osgeo import osr
 from osgeo import gdalconst
 import numpy as np
-import scipy.signal
-import scipy.ndimage
+# import scipy.signal
+# import scipy.ndimage
 
 # Custom modules
-import spatialIO as spio
+from .spatialIO import rasterReader, rasterWriter, polygonizer, pointShpWriter
 
 
 def main(options):
@@ -30,17 +30,17 @@ def main(options):
         trees, crowns, geotransform = processCHM(options)
 
         treetopsPath = options['dst'] + 'shp/' + filename + '_treetops.shp'
-        spio.pointShpWriter(treetopsPath, trees['prj_wkt'], trees['xpos'],
+        pointShpWriter(treetopsPath, trees['prj_wkt'], trees['xpos'],
                             trees['ypos'], trees['height'], 'H')
 
         crownsPath = options['dst'] + 'tif/' + filename + '_crowns.tif'
-        spio.rasterWriter(crowns, crownsPath,
+        rasterWriter(crowns, crownsPath,
                           geotransform, trees['prj_wkt'], gdal.GDT_Int16)
         polyPath = options['dst'] + 'shp/' + filename + '_crowns.shp'
         forest_maskPath = options['dst'] + \
             'tif/' + filename + '_forest_mask.tif'
 
-        spio.polygonizer(crownsPath, forest_maskPath, polyPath)
+        polygonizer(crownsPath, forest_maskPath, polyPath)
 
     # For folder input
     if os.path.isdir(options['src']):
@@ -55,7 +55,7 @@ def main(options):
             filename = basename(os.path.splitext(options['filePath'])[0])
             trees = processCHM(options)
             treetopsPath = options['dst'] + 'shp/' + filename + '_treetops.shp'
-            spio.pointShpWriter(treetopsPath, trees['prj_wkt'], trees['xpos'],
+            pointShpWriter(treetopsPath, trees['prj_wkt'], trees['xpos'],
                                 trees['ypos'], trees['height'], 'H')
 
 
@@ -80,7 +80,7 @@ def processCHM(options):
     ''' Extract tree positions and heights from canopy height model
         @param options Input options (dictionnary)
     '''
-    data, geotransform, prj_wkt = spio.rasterReader(options['filePath'])
+    data, geotransform, prj_wkt = rasterReader(options['filePath'])
 
     # filter outliers
     data = (data < 60) * (data > 1) * data
