@@ -3,9 +3,13 @@
 
 import os
 from os.path import basename
-from qgis.core import QgsVectorLayer, QgsExpression
-# from processing import runalg
+from qgis.core import QgsVectorLayer, QgsRasterLayer, QgsExpression
+from qgis.core import QgsFeedback
+import processing as qgsproc
+from qgis.core import QgsProcessingFeatureSourceDefinition
+from qgis.core import QgsProcessingOutputLayerDefinition
 from .folderManager import initialize
+from qgis.analysis import QgsZonalStatistics
 
 
 def main(options):
@@ -48,9 +52,14 @@ def processing(options, f):
     fileTxt = open(outputDir + "/log.txt", "a")
     fileTxt.write("gridstatisticsforpolygons started\n")
     fileTxt.close()
-    # get the MAX value
-    runalg('saga:gridstatisticsforpolygons', forestSelectedPath,
-           crownsPath, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, crownsStatsPath)
+
+    inputStatVector = QgsVectorLayer(crownsPath, "crowns", "ogr")
+    inputStatRaster = QgsRasterLayer(forestSelectedPath, "forestSelected")
+    z_stat = QgsZonalStatistics(inputStatVector, inputStatRaster, '_', 1,
+                                QgsZonalStatistics.Max)
+
+    result_z_stat = z_stat.calculateStatistics(QgsFeedback())
+
     outputDir = options["dst"]
     fileTxt = open(outputDir + "/log.txt", "a")
     fileTxt.write("gridstatisticsforpolygons passed\n")
@@ -80,8 +89,15 @@ def processing(options, f):
     fileTxt.write("advancedpythonfieldcalculator started\n")
     fileTxt.close()
 
-    runalg('qgis:advancedpythonfieldcalculator', treetopsPath,
-           'N', 0, 10, 0, '', 'value = $id', treetopsSelectedPath)
+    # runalg('qgis:advancedpythonfieldcalculator', treetopsPath,
+    #        'N', 0, 10, 0, '', 'value = $id', treetopsSelectedPath)
+
+
+    # inputStatVector = QgsVectorLayer(crownsPath, "crowns", "ogr")
+    # inputStatRaster = QgsRasterLayer(forestSelectedPath, "forestSelected")
+    # z_stat = QgsZonalStatistics(inputStatVector, inputStatRaster, '_', 1,
+    #                             QgsZonalStatistics.Max)
+
     outputDir = options["dst"]
     fileTxt = open(outputDir + "/log.txt", "a")
     fileTxt.write("joinattributesbylocation started\n")

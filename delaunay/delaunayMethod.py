@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from qgis.core import QgsVectorLayer
-
+from . import forestDetectShape
+from . import treeDetectTopsAndCrowns
+from . import treeSelector
+from . import convexHullComputer
+from . import postProcessing
+from . import folderManager
 
 def main(self, options, current_tile):
     '''

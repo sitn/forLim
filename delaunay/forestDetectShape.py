@@ -6,7 +6,7 @@ from os.path import basename
 from osgeo import gdal
 from osgeo import gdalconst
 import numpy as np
-# # import scipy.ndimage
+import scipy.ndimage
 from .folderManager import initialize
 
 # Import custom modules

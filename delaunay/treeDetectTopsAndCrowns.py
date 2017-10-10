@@ -9,8 +9,8 @@ from osgeo import ogr
 from osgeo import osr
 from osgeo import gdalconst
 import numpy as np
-# import scipy.signal
-# import scipy.ndimage
+import scipy.signal
+import scipy.ndimage
 
 # Custom modules
 from .spatialIO import rasterReader, rasterWriter, polygonizer, pointShpWriter
