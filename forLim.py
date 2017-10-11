@@ -175,11 +175,15 @@ class forLim:
 
     def select_input_files(self):
         filenames = QFileDialog.getOpenFileNames(filter="Images (*.tif)")
+        files_to_process = ''
+        print(filenames)
+        print(filenames[0])
+        print(filenames[0][0])
         if filenames:
-            filenames2 = filenames[0]
-            for f in filenames[1:]:
-                filenames2 = str(filenames2) + ";" + str(f)
-            self.dlg.LE_input.setText(filenames2)
+            for f in filenames[0]:
+                files_to_process += f + ';'
+            files_to_process = files_to_process[:-1]
+            self.dlg.LE_input.setText(files_to_process)
 
     def check_input_path(self):
         global last_path_input
@@ -453,6 +457,16 @@ class forLim:
                     True
                 }
 
+                # Set default values of process bar
+                self.dlg.progressBar.reset()
+                self.dlg.progressBar.setMinimum(0)
+                self.dlg.progressBar.setMaximum(1000)
+
+                # Print progress on user window
+                self.dlg.label_printActualProcess.setText("ForLim...")
+                self.dlg.progressBar.setValue(0)
+                QApplication.processEvents()
+
                 now_time = datetime.now()
 
                 name = "forLim_" + str(uuid4())
@@ -464,16 +478,6 @@ class forLim:
                 path_input = options["Path_input"]
                 files = options["Path_input"].split(";")
                 nfiles = len(files)
-
-                # Set default values of process bar
-                self.dlg.progressBar.reset()
-                self.dlg.progressBar.setMinimum(0)
-                self.dlg.progressBar.setMaximum(nfiles)
-
-                # Print progress on user window
-                self.dlg.label_printActualProcess.setText("Processing tiles..")
-                self.dlg.progressBar.setValue(0)
-                QApplication.processEvents()
 
                 ###################################
                 #  Delaunay's triangulation    #
@@ -494,15 +498,14 @@ class forLim:
                     options['Path_input'] = f[1]
                     options['src'] = str(options['Path_input'])
                     delaunayMethod.main(self, options, i)
-                    self.dlg.progressBar.setValue(i)
-                # Merge tiles
-                if i > 1:
-                    merge(options, '_forest_zones.shp')
-                    merge(options, '_ch_wpastures_dissolved.shp')
-                    merge(options, '_ch_forest_dissolved.shp')
-
-                # remove wooden pastures from forest zones
-                clip(options)
+                # # Merge tiles
+                # if i > 1:
+                #     merge(options, '_forest_zones.shp')
+                #     merge(options, '_ch_wpastures_dissolved.shp')
+                #     merge(options, '_ch_forest_dissolved.shp')
+                #
+                # # remove wooden pastures from forest zones
+                # clip(options)
 
                 # Merge convexhull calculation results
                 self.dlg.label_printActualProcess.setText(u'Calcul terminé')

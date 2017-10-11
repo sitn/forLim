@@ -18,7 +18,7 @@ from qgis.analysis import QgsZonalStatistics
 from . import voronoi
 
 
-def main(options):
+def main(options, progressBar, progressMessage):
 
     # Prepare the folders for outputs:
     initialize(options)
@@ -27,7 +27,7 @@ def main(options):
     if not os.path.isdir(options['src']):
         options['filePath'] = options['src']
         filename = basename(os.path.splitext(options['filePath'])[0])
-        processing(options, filename)
+        processing(options, filename, progressBar, progressMessage)
 
     # For folder input
     if os.path.isdir(options['src']):
@@ -45,7 +45,7 @@ def main(options):
             # Process each file
 
 
-def processing(options, f):
+def processing(options, f, progressBar, progressMessage):
     '''
     Select trees which are on the contour of the forest and isolated trees.
     '''
@@ -116,7 +116,13 @@ def processing(options, f):
         'tid', QVariant.Int)])
     crowns.updateFields()
     crowns.startEditing()
+    fcount = crowns.featureCount()
+    counter = 0
     for crown in crowns.getFeatures():
+        counter += 1
+        progressBar.setValue(100 + int(counter * (600 / fcount)))
+        progressMessage.setText('Joining crown ' + str(counter)
+                                + '/' + str(fcount))
         request = QgsFeatureRequest()
         request.setFilterRect(crown.geometry().boundingBox())
         dp = treetops.dataProvider()

@@ -7,6 +7,7 @@ from . import treeSelector
 from . import convexHullComputer
 from . import postProcessing
 
+
 def main(self, options, current_tile):
     '''
     Runs a set of tasks to determine the forest delimitation using
@@ -28,6 +29,7 @@ def processing(self, options, current_tile):
     self.dlg.label_printActualProcess.setText(u'Running shape detection for' +
                                               ' tile: ' + str(current_tile))
     forestDetectShape.main(options)
+    self.dlg.progressBar.setValue(50)
 
     ###################################
     #  1. Treetops extraction         #
@@ -36,6 +38,7 @@ def processing(self, options, current_tile):
     self.dlg.label_printActualProcess.setText(u'Running tree detection for' +
                                               ' tile: ' + str(current_tile))
     treeDetectTopsAndCrowns.main(options)
+    self.dlg.progressBar.setValue(100)
 
     ###################################
     #  3. Trees selection             #
@@ -43,7 +46,9 @@ def processing(self, options, current_tile):
     # Select the trees from forest contour and isolated trees
     self.dlg.label_printActualProcess.setText(u'Running tree selection for' +
                                               ' tile: ' + str(current_tile))
-    treeSelector.main(options)
+    treeSelector.main(options, self.dlg.progressBar,
+                      self.dlg.label_printActualProcess)
+    self.dlg.progressBar.setValue(800)
 
     ###################################
     #  4. Convex hulls computation    #
@@ -52,6 +57,7 @@ def processing(self, options, current_tile):
     self.dlg.label_printActualProcess.setText(u'Calculating convex hulls for' +
                                               ' tile: ' + str(current_tile))
     convexHullComputer.main(options)
+    self.dlg.progressBar.setValue(1000)
 
     ###################################
     #  5. Dissolve and Clip results    #

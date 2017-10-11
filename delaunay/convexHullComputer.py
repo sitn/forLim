@@ -4,7 +4,7 @@ import os
 from os.path import basename
 from osgeo import ogr
 from osgeo import osr
-from qgis.core import QgsVectorLayer
+from qgis.core import QgsVectorLayer, QgsProject
 
 # Import custom modules
 from .spatialIO import pathChecker
@@ -152,6 +152,17 @@ def processing(options, f):
     fileTxt = open(outputDir + "/log.txt", "a")
     fileTxt.write("convexHull passed\n")
     fileTxt.close()
+
+    forest = QgsVectorLayer(CHsForestPath, "Pastures CH", "ogr")
+    crowns = QgsVectorLayer(crownsPath, "Crowns", "ogr")
+    treetops = QgsVectorLayer(treetopsPath, "Forest CH", "ogr")
+    triangles = QgsVectorLayer(trianglesPath, "Forest CH", "ogr")
+    wooden_p = QgsVectorLayer(CHsWoodenPasturePath, "Forest CH", "ogr")
+    QgsProject.instance().addMapLayer(crowns)
+    QgsProject.instance().addMapLayer(treetops)
+    QgsProject.instance().addMapLayer(triangles)
+    QgsProject.instance().addMapLayer(forest)
+    QgsProject.instance().addMapLayer(wooden_p)
 
 
 if __name__ == "__main__":
