@@ -47,20 +47,16 @@ def processing(options, f):
     driver = ogr.GetDriverByName('ESRI Shapefile')
 
     # Loads treetops selection
-    treetopsPath = options['dst'] + 'shp/' + f + '_treetops_selected.shp'
+    treetopsPath = options['dst'] + 'shp/' + f + '_treetops.shp'
     ds_treetops = driver.Open(treetopsPath, 0)
     treetops = ds_treetops.GetLayer()
 
     # Loads crowns selection
-    crownsPath = options['dst'] + 'shp/' + f + '_crowns_selected.shp'
-    # ds_crowns = driver.Open(crownsPath, 0)
-    # crowns = ds_crowns.GetLayer()
+    crownsPath = options['dst'] + 'shp/' + f + '_crowns.shp'
     crowns = QgsVectorLayer(crownsPath, "Crows", "ogr")
 
     # Loads treetops triangulation
     trianglesPath = options['dst'] + 'shp/' + f + '_treetops_triangles.shp'
-    # ds_triangles = driver.Open(trianglesPath, 0)
-    # triangles = ds_triangles.GetLayer()
     triangles = QgsVectorLayer(trianglesPath, "triangles", "ogr")
 
     #  Create the new layers to store forest and wooden pasture convex hulls
@@ -95,7 +91,7 @@ def processing(options, f):
 
     # Compute the convex hull for each crown that composes a triangle
 
-    crown_N = crowns.getValues("N_1", False)[0]
+    crown_N = crowns.getValues("N", False)[0]
     del crowns
     forestRatio = options['forestRatio']
     WoodenPastureRatio = options['woodenPastureRatio']
@@ -105,13 +101,13 @@ def processing(options, f):
     for tri in triangles.getFeatures():
 
         # Get the corresponding treetop
-        alpha = treetops.GetFeature(tri['POINTA'])
-        beta = treetops.GetFeature(tri['POINTB'])
-        gamma = treetops.GetFeature(tri['POINTC'])
-
+        alpha = treetops.GetFeature(int(tri['POINTA']))
+        beta = treetops.GetFeature(int(tri['POINTB']))
+        gamma = treetops.GetFeature(int(tri['POINTC']))
         # Get the corresponding crown
         geom_collection = ogr.Geometry(ogr.wkbGeometryCollection)
         crown_count = 0
+
         if alpha.GetField("N") in crown_N:
             crown_alpha = crowns.GetFeature(crown_N.index(alpha.GetField('N')))
             geom_collection.AddGeometry(crown_alpha.geometry())

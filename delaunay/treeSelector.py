@@ -137,7 +137,7 @@ def processing(options, f):
     fields.append(QgsField('POINTA', QVariant.Double, '', 24, 15))
     fields.append(QgsField('POINTB', QVariant.Double, '', 24, 15))
     fields.append(QgsField('POINTC', QVariant.Double, '', 24, 15))
-    crs = QgsCoordinateReferenceSystem('EPSG:21781')
+    crs = QgsCoordinateReferenceSystem('EPSG:2056')
     triangleFile = QgsVectorFileWriter(treetopsTrianglesPath,
                                        'utf-8',
                                        fields,
