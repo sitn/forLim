@@ -5,14 +5,18 @@ import os
 from os.path import basename
 from qgis.core import QgsVectorLayer, QgsRasterLayer, QgsExpression
 from qgis.core import QgsFeedback, QgsField, QgsFeatureRequest
+from qgis.core import QgsVectorFileWriter, QgsCoordinateReferenceSystem
+from qgis.core import QgsFields, QgsWkbTypes, QgsGeometry
+from qgis.core import QgsProcessingException, QgsFeature, QgsPoint
+from qgis.core import QgsLineString, QgsPolygonV2
 from qgis.PyQt.QtCore import QVariant
 import processing as qgsproc
 from qgis.core import QgsProcessingFeatureSourceDefinition
 from qgis.core import QgsProcessingOutputLayerDefinition
 from .folderManager import initialize
 from qgis.analysis import QgsZonalStatistics
-from processing.algs.qgis import SpatialJoin
-from processing import run
+from . import voronoi
+
 
 def main(options):
 
@@ -96,7 +100,6 @@ def processing(options, f):
     treetops.updateFields()
     treetops.startEditing()
     for treetop in treetops.getFeatures():
-        print(treetop.id())
         treetops.changeAttributeValue(treetop.id(),
                                       treetop.fieldNameIndex('N'),
                                       treetop.id())
@@ -106,6 +109,8 @@ def processing(options, f):
     fileTxt = open(outputDir + "/log.txt", "a")
     fileTxt.write("joinattributesbylocation started\n")
     fileTxt.close()
+
+    # Adapted from https://github.com/qgis/QGIS-Processing
 
     crowns.dataProvider().addAttributes([QgsField(
         'tid', QVariant.Int)])
@@ -117,7 +122,6 @@ def processing(options, f):
         dp = treetops.dataProvider()
         for r in dp.getFeatures(request):
             if crown.geometry().intersects(r.geometry()):
-                # crown.setAttribute('tid', r.id())
                 crowns.changeAttributeValue(crown.id(),
                                             crown.fieldNameIndex('tid'),
                                             r.id())
@@ -126,8 +130,83 @@ def processing(options, f):
     fileTxt = open(outputDir + "/log.txt", "a")
     fileTxt.write("delaunaytriangulation started\n")
     fileTxt.close()
-    runalg('qgis:delaunaytriangulation',
-           treetopsSelectedPath, treetopsTrianglesPath)
+
+# delaunay triangulation Adapted from official Python plugin
+
+    fields = QgsFields()
+    fields.append(QgsField('POINTA', QVariant.Double, '', 24, 15))
+    fields.append(QgsField('POINTB', QVariant.Double, '', 24, 15))
+    fields.append(QgsField('POINTC', QVariant.Double, '', 24, 15))
+    crs = QgsCoordinateReferenceSystem('EPSG:21781')
+    triangleFile = QgsVectorFileWriter(treetopsTrianglesPath,
+                                       'utf-8',
+                                       fields,
+                                       QgsWkbTypes.Polygon,
+                                       crs,
+                                       'ESRI Shapefile')
+
+    pts = []
+    ptDict = {}
+    ptNdx = -1
+    c = voronoi.Context()
+    features = treetops.getFeatures()
+    total = 100.0 / treetops.featureCount() if treetops.featureCount() else 0
+    for current, inFeat in enumerate(features):
+        geom = QgsGeometry(inFeat.geometry())
+        if geom.isNull():
+            continue
+        if geom.isMultipart():
+            points = geom.asMultiPoint()
+        else:
+            points = [geom.asPoint()]
+        for n, point in enumerate(points):
+            x = point.x()
+            y = point.y()
+            pts.append((x, y))
+            ptNdx += 1
+            ptDict[ptNdx] = (inFeat.id(), n)
+
+    if len(pts) < 3:
+        raise QgsProcessingException(
+            'Input file should contain at least 3 points. Choose '
+            'another file and try again.')
+
+    uniqueSet = set(item for item in pts)
+    ids = [pts.index(item) for item in uniqueSet]
+    sl = voronoi.SiteList([voronoi.Site(*i) for i in uniqueSet])
+    c.triangulate = True
+    voronoi.voronoi(sl, c)
+    triangles = c.triangles
+    feat = QgsFeature()
+
+    total = 100.0 / len(triangles) if triangles else 1
+    for current, triangle in enumerate(triangles):
+
+        indices = list(triangle)
+        indices.append(indices[0])
+        polygon = []
+
+        attrs = []
+        step = 0
+        for index in indices:
+            fid, n = ptDict[ids[index]]
+            request = QgsFeatureRequest().setFilterFid(fid)
+            inFeat = next(treetops.getFeatures(request))
+            geom = QgsGeometry(inFeat.geometry())
+            point = QgsPoint(geom.asPoint())
+
+            polygon.append(point)
+            if step <= 3:
+                attrs.append(ids[index])
+            step += 1
+
+        linestring = QgsLineString(polygon)
+        poly = QgsPolygonV2()
+        poly.setExteriorRing(linestring)
+        feat.setAttributes(attrs)
+        geometry = QgsGeometry().fromWkt(poly.asWkt())
+        feat.setGeometry(geometry)
+        triangleFile.addFeature(feat)
 
     #  Remove triangles with perimeter higher than threshold
     triangles = QgsVectorLayer(treetopsTrianglesPath, 'triangles', 'ogr')
