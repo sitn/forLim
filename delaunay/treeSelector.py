@@ -4,13 +4,15 @@
 import os
 from os.path import basename
 from qgis.core import QgsVectorLayer, QgsRasterLayer, QgsExpression
-from qgis.core import QgsFeedback
+from qgis.core import QgsFeedback, QgsField, QgsFeatureRequest
+from qgis.PyQt.QtCore import QVariant
 import processing as qgsproc
 from qgis.core import QgsProcessingFeatureSourceDefinition
 from qgis.core import QgsProcessingOutputLayerDefinition
 from .folderManager import initialize
 from qgis.analysis import QgsZonalStatistics
-
+from processing.algs.qgis import SpatialJoin
+from processing import run
 
 def main(options):
 
@@ -47,15 +49,15 @@ def processing(options, f):
     forestSelectedPath = options['dst'] + 'tif/' + f + \
         '_forest_selected.tif'
     crownsPath = options['dst'] + 'shp/' + f + '_crowns.shp'
-    crownsStatsPath = options['dst'] + 'shp/' + f + '_crowns_stats.shp'
+    # crownsStatsPath = options['dst'] + 'shp/' + f + '_crowns_stats.shp'
     outputDir = options["dst"]
     fileTxt = open(outputDir + "/log.txt", "a")
     fileTxt.write("gridstatisticsforpolygons started\n")
     fileTxt.close()
 
-    inputStatVector = QgsVectorLayer(crownsPath, "crowns", "ogr")
+    crowns = QgsVectorLayer(crownsPath, "crowns", "ogr")
     inputStatRaster = QgsRasterLayer(forestSelectedPath, "forestSelected")
-    z_stat = QgsZonalStatistics(inputStatVector, inputStatRaster, '_', 1,
+    z_stat = QgsZonalStatistics(crowns, inputStatRaster, '_', 1,
                                 QgsZonalStatistics.Max)
 
     result_z_stat = z_stat.calculateStatistics(QgsFeedback())
@@ -64,8 +66,8 @@ def processing(options, f):
     fileTxt = open(outputDir + "/log.txt", "a")
     fileTxt.write("gridstatisticsforpolygons passed\n")
     fileTxt.close()
-    crowns = QgsVectorLayer(crownsStatsPath, 'Crowns stats', 'ogr')
-    crowns.selectByExpression('"G01_MAX"=1.0')
+    # crowns = QgsVectorLayer(crownsStatsPath, 'Crowns stats', 'ogr')
+    crowns.selectByExpression('"_max"=1.0')
     selected_array = crowns.getValues("N", True)
     crowns.invertSelection()
     unselected_array = crowns.getValues("N", True)
@@ -89,25 +91,37 @@ def processing(options, f):
     fileTxt.write("advancedpythonfieldcalculator started\n")
     fileTxt.close()
 
-    # runalg('qgis:advancedpythonfieldcalculator', treetopsPath,
-    #        'N', 0, 10, 0, '', 'value = $id', treetopsSelectedPath)
-
-
-    # inputStatVector = QgsVectorLayer(crownsPath, "crowns", "ogr")
-    # inputStatRaster = QgsRasterLayer(forestSelectedPath, "forestSelected")
-    # z_stat = QgsZonalStatistics(inputStatVector, inputStatRaster, '_', 1,
-    #                             QgsZonalStatistics.Max)
+    treetops.dataProvider().addAttributes([QgsField(
+        'N', QVariant.Int)])
+    treetops.updateFields()
+    treetops.startEditing()
+    for treetop in treetops.getFeatures():
+        print(treetop.id())
+        treetops.changeAttributeValue(treetop.id(),
+                                      treetop.fieldNameIndex('N'),
+                                      treetop.id())
+    treetops.commitChanges()
 
     outputDir = options["dst"]
     fileTxt = open(outputDir + "/log.txt", "a")
     fileTxt.write("joinattributesbylocation started\n")
     fileTxt.close()
-    # runalg('qgis:joinattributesbylocation', crownsStatsPath,
-    #        treetopsSelectedPath, u'contains', 0.0,  0, '', 0,
-    #        crownsSelectedPath)
-    runalg('saga:addpointattributestopolygons', crownsStatsPath,
-           treetopsSelectedPath, 'N', False,
-           crownsSelectedPath)
+
+    crowns.dataProvider().addAttributes([QgsField(
+        'tid', QVariant.Int)])
+    crowns.updateFields()
+    crowns.startEditing()
+    for crown in crowns.getFeatures():
+        request = QgsFeatureRequest()
+        request.setFilterRect(crown.geometry().boundingBox())
+        dp = treetops.dataProvider()
+        for r in dp.getFeatures(request):
+            if crown.geometry().intersects(r.geometry()):
+                # crown.setAttribute('tid', r.id())
+                crowns.changeAttributeValue(crown.id(),
+                                            crown.fieldNameIndex('tid'),
+                                            r.id())
+    crowns.commitChanges()
 
     fileTxt = open(outputDir + "/log.txt", "a")
     fileTxt.write("delaunaytriangulation started\n")
