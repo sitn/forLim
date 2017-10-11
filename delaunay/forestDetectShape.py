@@ -133,17 +133,17 @@ def export(options, filename, forest_mask, forest_zones, forest_outline,
     # export raster results
     forest_maskPath = options['dst'] + 'tif/' + filename + '_forest_mask.tif'
     rasterWriter(forest_mask, forest_maskPath, options['geotransform'],
-                      options['prj_wkt'], gdal.GDT_Byte)
+                 options['prj_wkt'], gdal.GDT_Byte)
 
     forest_zonesPath = options['dst'] + 'tif/' + filename + '_forest_zones.tif'
     rasterWriter(forest_zones, forest_zonesPath, options['geotransform'],
-                      options['prj_wkt'], gdal.GDT_Byte)
+                 options['prj_wkt'], gdal.GDT_Byte)
 
     forest_selectedPath = options['dst'] + 'tif/' + filename + \
         '_forest_selected.tif'
     rasterWriter(forest_selected, forest_selectedPath,
-                      options['geotransform'], options['prj_wkt'],
-                      gdal.GDT_Byte)
+                 options['geotransform'], options['prj_wkt'],
+                 gdal.GDT_Byte)
     # vectorize the forest zones
     polyPath = options['dst'] + 'shp/' + filename + '_forest_zones.shp'
     polygonizer(forest_zonesPath, forest_zonesPath, polyPath)

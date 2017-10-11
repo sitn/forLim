@@ -31,11 +31,11 @@ def main(options):
 
         treetopsPath = options['dst'] + 'shp/' + filename + '_treetops.shp'
         pointShpWriter(treetopsPath, trees['prj_wkt'], trees['xpos'],
-                            trees['ypos'], trees['height'], 'H')
+                       trees['ypos'], trees['height'], 'H')
 
         crownsPath = options['dst'] + 'tif/' + filename + '_crowns.tif'
         rasterWriter(crowns, crownsPath,
-                          geotransform, trees['prj_wkt'], gdal.GDT_Int16)
+                     geotransform, trees['prj_wkt'], gdal.GDT_Int16)
         polyPath = options['dst'] + 'shp/' + filename + '_crowns.shp'
         forest_maskPath = options['dst'] + \
             'tif/' + filename + '_forest_mask.tif'
@@ -56,7 +56,7 @@ def main(options):
             trees = processCHM(options)
             treetopsPath = options['dst'] + 'shp/' + filename + '_treetops.shp'
             pointShpWriter(treetopsPath, trees['prj_wkt'], trees['xpos'],
-                                trees['ypos'], trees['height'], 'H')
+                           trees['ypos'], trees['height'], 'H')
 
 
 def initialize(options):
@@ -113,7 +113,6 @@ def processCHM(options):
     py = np.asarray(y).astype(int)  # y coordinate
     pz = data[py, px]  # height value
     mx, my = ApplyGeoTransform(px, py, geotransform)
-
 
     # crowns
     data = data * 1000

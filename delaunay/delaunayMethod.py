@@ -6,7 +6,6 @@ from . import treeDetectTopsAndCrowns
 from . import treeSelector
 from . import convexHullComputer
 from . import postProcessing
-from . import folderManager
 
 def main(self, options, current_tile):
     '''
@@ -59,7 +58,7 @@ def processing(self, options, current_tile):
     ###################################
     self.dlg.label_printActualProcess.setText(u'Postprocessing for' +
                                               ' tile: ' + str(current_tile))
-    postProcessing.main(options)
+    # postProcessing.main(options)
 
 
 

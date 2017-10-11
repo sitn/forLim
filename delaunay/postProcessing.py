@@ -6,7 +6,8 @@ from osgeo import ogr
 from osgeo import osr
 from qgis.core import QgsVectorLayer
 from qgis.core import QgsCoordinateReferenceSystem
-# from processing import runalg
+from . import folderManager
+from processing import run
 
 # Import custom modules
 from .spatialIO import pathChecker
@@ -15,7 +16,7 @@ from .spatialIO import pathChecker
 def main(options):
 
     # Prepare the folders for outputs:
-    initialize(options)
+    folderManager.initialize(options)
 
     # For direct file input
     if not os.path.isdir(options['src']):
@@ -47,7 +48,7 @@ def main(options):
 
 
 def dissolve(options, f):
-
+    print("dissolve")
     #  Create the new layers to store forest and wooden pasture convex hulls
     CHsForestPath = options['dst'] + 'shp/' + f + '_convexHulls_forest.shp'
     CHsWoodenPasturePath = options['dst'] + 'shp/' + f + \
@@ -58,13 +59,14 @@ def dissolve(options, f):
     dissolvedW = options['dst'] + 'shp/' + f + '_ch_wpastures_dissolved.shp'
     pathChecker(dissolvedW)
 
-    fLayer = QgsVectorLayer(CHsForestPath, 'Dense forests', 'ogr')
-    wLayer = QgsVectorLayer(CHsWoodenPasturePath, 'Wooden pastures', 'ogr')
+    run('qgis:union',
+        {'INPUT': CHsForestPath,
+         'OUTPUT': dissolvedF})
 
-    # analyzer = QgsGeometryAnalyzer()
-    # analyzer.dissolve(wLayer, dissolvedW)
-    # analyzer.dissolve(fLayer, dissolvedF)
-    # TODO: use processing instead
+    run('qgis:union',
+        {'INPUT': CHsWoodenPasturePath,
+         'OUTPUT': dissolvedW})
+
     return
 
 
@@ -80,11 +82,10 @@ def merge(options, layer_suffix):
 
     dst = options['dst'] + 'shp/merged' + layer_suffix
 
-    #runalg('qgis:mergevectorlayers', merge_candidates, dst)
+    runalg('qgis:mergevectorlayers', merge_candidates, dst)
 
     if options["AddLayer"]:
         merged = QgsVectorLayer(dst, 'Merged ' + layer_suffix[:-4], 'ogr')
-        # QgsMapLayerRegistry.instance().addMapLayer(merged)
 
 
 def clip(options):
@@ -120,8 +121,14 @@ def clip(options):
     result_deag = dst + 'shp/' + 'deagragated_forest_zones.shp'
     # runalg('qgis:difference', forest_zones, wooden_pastures, False,
     #       result_diff)
+    print(forest_zones, wooden_pastures, result_diff)
+    run('qgis:difference',
+        {'INPUT': forest_zones,
+         'OVERLAY': wooden_pastures,
+         'IGNORE_INVALID': False,
+         'OUTPUT': result_diff})
 
-    # runalg('qgis:multiparttosingleparts', result_diff, result_deag)
+    runalg('qgis:multiparttosingleparts', result_diff, result_deag)
 
     forest_raw = QgsVectorLayer(result_deag, 'ToFilter ', 'ogr')
     dp = forest_raw.dataProvider()
