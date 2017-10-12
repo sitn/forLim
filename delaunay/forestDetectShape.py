@@ -118,7 +118,7 @@ def filterElementsBySize(elements, size):
     # Get the IDs corresponding to matches
     match_feat_ID = np.nonzero(matches)[0]
     valid_match_feat_ID = np.setdiff1d(match_feat_ID, [0, num_features])
-
+    # MEMORY ERROR HERE
     elements_new = np.in1d(labeled_array, valid_match_feat_ID
                            ).reshape(labeled_array.shape)
 

@@ -120,6 +120,7 @@ def processing(options, f, progressBar, progressMessage):
     counter = 0
     for crown in crowns.getFeatures():
         counter += 1
+        print(counter, fcount)
         progressBar.setValue(100 + int(counter * (600 / fcount)))
         progressMessage.setText('Joining crown ' + str(counter)
                                 + '/' + str(fcount))
@@ -157,6 +158,7 @@ def processing(options, f, progressBar, progressMessage):
     c = voronoi.Context()
     features = treetops.getFeatures()
     total = 100.0 / treetops.featureCount() if treetops.featureCount() else 0
+    progressMessage.setText('Starting triangulation...')
     for current, inFeat in enumerate(features):
         geom = QgsGeometry(inFeat.geometry())
         if geom.isNull():
@@ -171,6 +173,7 @@ def processing(options, f, progressBar, progressMessage):
             pts.append((x, y))
             ptNdx += 1
             ptDict[ptNdx] = (inFeat.id(), n)
+    progressMessage.setText('Triangulation step 1 ok')
 
     if len(pts) < 3:
         raise QgsProcessingException(
@@ -213,6 +216,7 @@ def processing(options, f, progressBar, progressMessage):
         geometry = QgsGeometry().fromWkt(poly.asWkt())
         feat.setGeometry(geometry)
         triangleFile.addFeature(feat)
+    progressMessage.setText('Triangulation terminated')
 
     #  Remove triangles with perimeter higher than threshold
     triangles = QgsVectorLayer(treetopsTrianglesPath, 'triangles', 'ogr')
@@ -225,6 +229,7 @@ def processing(options, f, progressBar, progressMessage):
     fileTxt = open(outputDir + "/log.txt", "a")
     fileTxt.write("treeSelector passed\n")
     fileTxt.close()
+    progressMessage.setText('Starting convexhull computing...')
 
 
 if __name__ == "__main__":

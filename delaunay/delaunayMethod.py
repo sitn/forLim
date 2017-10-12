@@ -26,7 +26,7 @@ def processing(self, options, current_tile):
     #  0. Forest shape extraction     #
     ###################################
     # Run the general forest prior shape, contour and isolated trees extraction
-    self.dlg.label_printActualProcess.setText(u'Running shape detection for' +
+    self.dlg.label_printActualProcess.setText(u'Shape detection for' +
                                               ' tile: ' + str(current_tile))
     forestDetectShape.main(options)
     self.dlg.progressBar.setValue(50)
@@ -35,7 +35,7 @@ def processing(self, options, current_tile):
     #  1. Treetops extraction         #
     ###################################
     # run Matthew Parkan's treeDetectLmax modified version
-    self.dlg.label_printActualProcess.setText(u'Running tree detection for' +
+    self.dlg.label_printActualProcess.setText(u'Tree detection for' +
                                               ' tile: ' + str(current_tile))
     treeDetectTopsAndCrowns.main(options)
     self.dlg.progressBar.setValue(100)
@@ -44,7 +44,7 @@ def processing(self, options, current_tile):
     #  3. Trees selection             #
     ###################################
     # Select the trees from forest contour and isolated trees
-    self.dlg.label_printActualProcess.setText(u'Running tree selection for' +
+    self.dlg.label_printActualProcess.setText(u'Tree selection for' +
                                               ' tile: ' + str(current_tile))
     treeSelector.main(options, self.dlg.progressBar,
                       self.dlg.label_printActualProcess)
