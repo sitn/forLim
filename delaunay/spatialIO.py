@@ -204,40 +204,5 @@ def polygonizer(rasterPath, maskPath, shapePath):
     ds_vec = None
 
 
-def rasterizer(shapePath, rasterPath, attribute, gridModelPath):
-    '''Rasterize a shapefile using its attribute value
-        @param shapePath    Input shapefile
-        @param rasterPath   Output rasterfile
-        @param attribute    Attribute fieldname (string)
-        @gridModelPath      grid used to as reference'''
-    # Import data, geotransform and projection from the model grid
-    data, geotransform, prj_wkt = rasterReader(gridModelPath)
-    RasterYSize, RasterXSize = data.shape
-
-    # Import data from the vector layer
-    driver = ogr.GetDriverByName('ESRI Shapefile')
-    vector_source = driver.Open(shapePath, 0)
-    source_layer = vector_source.GetLayer(0)
-
-    target_ds = gdal.GetDriverByName('MEM').Create("", RasterXSize,
-                                                   RasterYSize, 1,
-                                                   gdal.GDT_Int32)
-    target_ds.SetGeoTransform(geotransform)
-    target_ds.SetProjection(prj_wkt)
-
-    err = gdal.RasterizeLayer(target_ds, [1], source_layer,
-                              options=["ATTRIBUTE=%s" % attribute])
-    if err != 0:
-        raise Exception("error rasterizing layer: %s" % err)
-    data = target_ds.ReadAsArray()
-    rasterWriter(data, rasterPath, geotransform, prj_wkt, gdal.GDT_Int32)
-
-
 if __name__ == "__main__":
     main()
-
-
-__author__ = "SFFN/APM"
-__license__ = "GPL"
-__version__ = "0.1.0"
-__status__ = "Development"
