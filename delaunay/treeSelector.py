@@ -15,6 +15,7 @@ from qgis.core import QgsProcessingFeatureSourceDefinition
 from qgis.core import QgsProcessingOutputLayerDefinition
 from .folderManager import initialize
 from qgis.analysis import QgsZonalStatistics
+# TODO: replace by native QGIS c++ algo when available...
 from . import voronoi
 
 
@@ -111,6 +112,7 @@ def processing(options, f, progressBar, progressMessage):
     fileTxt.close()
 
     # Adapted from https://github.com/qgis/QGIS-Processing
+    # TODO: replace by native QGIS c++ algo when available...
 
     crowns.dataProvider().addAttributes([QgsField(
         'tid', QVariant.Int)])
@@ -137,7 +139,8 @@ def processing(options, f, progressBar, progressMessage):
     fileTxt.write("delaunaytriangulation started\n")
     fileTxt.close()
 
-# delaunay triangulation Adapted from official Python plugin
+    # delaunay triangulation Adapted from official Python plugin
+    # TODO: replace by native QGIS c++ algo when available...
 
     fields = QgsFields()
     fields.append(QgsField('POINTA', QVariant.Double, '', 24, 15))
