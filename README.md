@@ -1,20 +1,27 @@
 # forLim
-QGIS Plugin to delimitate forested surfaces
+* A QGIS Plugin to delimitate forested surfaces from a digital canopy model (raster)*
+
+## Requirements
+0. QGIS 3+ with scipy dependency installed.
+1. On windows, this may or may not mean that QGIS has to be install with OSGEO4W
+
+## Installation
+
+1. Clone this repository on your machine
+2. Link the new directory with the QGIS plugin directory or copy everything in the plugin directory
+
+## Features
 
 forLim is a QGIS plugin to delimitate forested surfaces using the canopy height model (CHM) as reference information.
 
 The parameters for this delimitation are set by default to respect the swiss federal and cantonal legislations for forest delimitations.
 
-Note on The Code structure
+At this stage, only the first step, that is the delimitation of the forest zones using the convolution method is fully operational on large datasets.
+the other steps of the Delaunay method to filter the forest zones' borders might crash due on memory issue with large datasets
 
-forLim.py -> main qgis method, calls different methods/algorithms to process the data and deals with the graphical aspects and primary data validations
+Postprocessing will be required in most cases, depending of the canopy model. For instance, buildings, electric cables, ... need to be removed
 
-convolutionMethod.py -> main method for the convolution method, calls specific spatial scripts and give back to forLim.py the requested information
+## Todos
 
-delaunayMethod.py -> main method for the delaunay method, calls specific spatial scripts and give back to forLim.py the requested information
+Remove python loops doing processing algorithms that will soon have a native implementation within QGIS 3. Only steps fro Delaunay methods completion are concerned
 
-spatialTransformations.py -> register for spatial transformations methods which will be used in conv and tri methods.
-
-specificFunction.py -> any specific function developped for the cause which is not a "standard" spatial transformation
-
-forLimTester.py	-> A python script to run forLim without using the plugin with hardcoded paths, ideal for debug and dev purposes
