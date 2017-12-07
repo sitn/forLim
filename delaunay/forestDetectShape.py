@@ -8,6 +8,8 @@ from osgeo import gdalconst
 import numpy as np
 import scipy.ndimage
 from .folderManager import initialize
+from qgis.core import QgsVectorLayer, QgsProject
+
 
 # Import custom modules
 from .spatialIO import pathChecker, rasterReader, rasterWriter, polygonizer
@@ -52,15 +54,14 @@ def processing(options):
     RasterYSize, RasterXSize = data.shape
 
     # Filter non realstic data
-    data = (data < 60) * (data > 1) * data
+    data = (data < options['MaxHeightThres']) * \
+           (data > options['MinHeightThres']) * data
 
     ########################################################################
     # Compute a priori forest zones
     ########################################################################
 
     # Compute no-tree/forest binary data
-    # forest_mask = data > 0
-
     # Fill the small holes which are to small to be considered as clearings
     holes = (data > 0) < 1
     holes = filterElementsBySize(holes, options['MaxAreaThres'])
@@ -68,7 +69,6 @@ def processing(options):
     # Remove the small forest islands which are to small to be considered
     # as forest zones
 
-    # forest_mask = holes < 1
     forest_zones = filterElementsBySize((holes < 1), options['MinAreaThres'])
 
     ########################################################################
@@ -99,6 +99,13 @@ def processing(options):
     f = open(outputDir + "/log.txt", "a")
     f.write("forestDetectShape passed\n")
     f.close()
+
+    if options["AddLayer"]:
+
+        vlayer = QgsVectorLayer(options['dst'] + 'shp/' + filename +
+                                '_forest_zones.shp', "forest", "ogr")
+
+        QgsProject.instance().addMapLayer(vlayer)
 
     return
 

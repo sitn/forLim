@@ -4,7 +4,7 @@ import os
 from os.path import basename
 from osgeo import ogr
 from osgeo import osr
-from qgis.core import QgsVectorLayer
+from qgis.core import QgsVectorLayer, QgsProject
 from qgis.core import QgsCoordinateReferenceSystem
 from . import folderManager
 from processing import run
@@ -40,15 +40,8 @@ def main(options):
             # Process each file
             dissolve(options, filename)
 
-    if options["AddLayer"]:
-
-        vlayer = QgsVectorLayer(options['dst'] + 'shp/' + filename +
-                                '_forest_zones.shp', "forest", "ogr")
-        # QgsMapLayerRegistry.instance().addMapLayer(vlayer)
-
 
 def dissolve(options, f):
-    print("dissolve")
     #  Create the new layers to store forest and wooden pasture convex hulls
     CHsForestPath = options['dst'] + 'shp/' + f + '_convexHulls_forest.shp'
     CHsWoodenPasturePath = options['dst'] + 'shp/' + f + \
@@ -86,6 +79,7 @@ def merge(options, layer_suffix):
 
     if options["AddLayer"]:
         merged = QgsVectorLayer(dst, 'Merged ' + layer_suffix[:-4], 'ogr')
+        QgsProject.instance().addMapLayer(merged)
 
 
 def clip(options):
@@ -119,9 +113,7 @@ def clip(options):
 
     result_diff = dst + 'shp/' + 'difference_forest_zones.shp'
     result_deag = dst + 'shp/' + 'deagragated_forest_zones.shp'
-    # runalg('qgis:difference', forest_zones, wooden_pastures, False,
-    #       result_diff)
-    print(forest_zones, wooden_pastures, result_diff)
+
     run('qgis:difference',
         {'INPUT': forest_zones,
          'OVERLAY': wooden_pastures,
@@ -143,7 +135,7 @@ def clip(options):
 
     if options["AddLayer"]:
         forest = QgsVectorLayer(result_deag, 'Final forLim forest ', 'ogr')
-        # QgsMapLayerRegistry.instance().addMapLayer(forest)
+        QgsProject.instance().addMapLayer(forest)
 
     return result_deag
 

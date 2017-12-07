@@ -23,7 +23,7 @@ def processing(self, options, current_tile):
     '''
 
     ###################################
-    #  0. Forest shape extraction     #
+    #  0. Forest shape extraction = Convolution method    #
     ###################################
     # Run the general forest prior shape, contour and isolated trees extraction
     self.dlg.label_printActualProcess.setText(u'Shape detection for' +
@@ -31,6 +31,10 @@ def processing(self, options, current_tile):
     forestDetectShape.main(options)
     self.dlg.progressBar.setValue(50)
 
+    if options["onlyConvolution"]:
+        self.dlg.label_printActualProcess.setText(u'Calcul selon la méthode' +
+                                                  'de convolution terminé!')
+        return
     ###################################
     #  1. Treetops extraction         #
     ###################################
@@ -64,8 +68,7 @@ def processing(self, options, current_tile):
     ###################################
     self.dlg.label_printActualProcess.setText(u'Postprocessing for' +
                                               ' tile: ' + str(current_tile))
-    # postProcessing.main(options)
-
+    postProcessing.main(options)
 
 
 if __name__ == "__main__":

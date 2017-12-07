@@ -120,7 +120,6 @@ def processing(options, f, progressBar, progressMessage):
     counter = 0
     for crown in crowns.getFeatures():
         counter += 1
-        print(counter, fcount)
         progressBar.setValue(100 + int(counter * (600 / fcount)))
         progressMessage.setText('Joining crown ' + str(counter)
                                 + '/' + str(fcount))
