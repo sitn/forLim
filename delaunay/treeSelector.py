@@ -3,13 +3,23 @@
 
 import os
 from os.path import basename
-import spatialIO as spio
-from qgis.core import QgsVectorLayer, QgsExpression, QgsMapLayerRegistry
-from processing import runalg
-from folderManager import initialize
+from qgis.core import QgsVectorLayer, QgsRasterLayer, QgsExpression
+from qgis.core import QgsFeedback, QgsField, QgsFeatureRequest
+from qgis.core import QgsVectorFileWriter, QgsCoordinateReferenceSystem
+from qgis.core import QgsFields, QgsWkbTypes, QgsGeometry
+from qgis.core import QgsProcessingException, QgsFeature, QgsPoint
+from qgis.core import QgsLineString, QgsPolygonV2
+from qgis.PyQt.QtCore import QVariant
+import processing as qgsproc
+from qgis.core import QgsProcessingFeatureSourceDefinition
+from qgis.core import QgsProcessingOutputLayerDefinition
+from .folderManager import initialize
+from qgis.analysis import QgsZonalStatistics
+# TODO: replace by native QGIS c++ algo when available...
+from . import voronoi
 
 
-def main(options):
+def main(options, progressBar, progressMessage):
 
     # Prepare the folders for outputs:
     initialize(options)
@@ -18,7 +28,7 @@ def main(options):
     if not os.path.isdir(options['src']):
         options['filePath'] = options['src']
         filename = basename(os.path.splitext(options['filePath'])[0])
-        processing(options, filename)
+        processing(options, filename, progressBar, progressMessage)
 
     # For folder input
     if os.path.isdir(options['src']):
@@ -36,7 +46,7 @@ def main(options):
             # Process each file
 
 
-def processing(options, f):
+def processing(options, f, progressBar, progressMessage):
     '''
     Select trees which are on the contour of the forest and isolated trees.
     '''
@@ -44,20 +54,25 @@ def processing(options, f):
     forestSelectedPath = options['dst'] + 'tif/' + f + \
         '_forest_selected.tif'
     crownsPath = options['dst'] + 'shp/' + f + '_crowns.shp'
-    crownsStatsPath = options['dst'] + 'shp/' + f + '_crowns_stats.shp'
+    # crownsStatsPath = options['dst'] + 'shp/' + f + '_crowns_stats.shp'
     outputDir = options["dst"]
     fileTxt = open(outputDir + "/log.txt", "a")
     fileTxt.write("gridstatisticsforpolygons started\n")
     fileTxt.close()
-    # get the MAX value
-    runalg('saga:gridstatisticsforpolygons', forestSelectedPath,
-           crownsPath, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, crownsStatsPath)
+
+    crowns = QgsVectorLayer(crownsPath, "crowns", "ogr")
+    inputStatRaster = QgsRasterLayer(forestSelectedPath, "forestSelected")
+    z_stat = QgsZonalStatistics(crowns, inputStatRaster, '_', 1,
+                                QgsZonalStatistics.Max)
+
+    result_z_stat = z_stat.calculateStatistics(QgsFeedback())
+
     outputDir = options["dst"]
     fileTxt = open(outputDir + "/log.txt", "a")
     fileTxt.write("gridstatisticsforpolygons passed\n")
     fileTxt.close()
-    crowns = QgsVectorLayer(crownsStatsPath, 'Crowns stats', 'ogr')
-    crowns.selectByExpression('"G01_MAX"=1.0')
+    # crowns = QgsVectorLayer(crownsStatsPath, 'Crowns stats', 'ogr')
+    crowns.selectByExpression('"_max"=1.0')
     selected_array = crowns.getValues("N", True)
     crowns.invertSelection()
     unselected_array = crowns.getValues("N", True)
@@ -81,24 +96,129 @@ def processing(options, f):
     fileTxt.write("advancedpythonfieldcalculator started\n")
     fileTxt.close()
 
-    runalg('qgis:advancedpythonfieldcalculator', treetopsPath,
-           'N', 0, 10, 0, '', 'value = $id', treetopsSelectedPath)
+    treetops.dataProvider().addAttributes([QgsField(
+        'N', QVariant.Int)])
+    treetops.updateFields()
+    treetops.startEditing()
+    for treetop in treetops.getFeatures():
+        treetops.changeAttributeValue(treetop.id(),
+                                      treetop.fieldNameIndex('N'),
+                                      treetop.id())
+    treetops.commitChanges()
+
     outputDir = options["dst"]
     fileTxt = open(outputDir + "/log.txt", "a")
     fileTxt.write("joinattributesbylocation started\n")
     fileTxt.close()
-    # runalg('qgis:joinattributesbylocation', crownsStatsPath,
-    #        treetopsSelectedPath, u'contains', 0.0,  0, '', 0,
-    #        crownsSelectedPath)
-    runalg('saga:addpointattributestopolygons', crownsStatsPath,
-           treetopsSelectedPath, 'N', False,
-           crownsSelectedPath)
+
+    # Adapted from https://github.com/qgis/QGIS-Processing
+    # TODO: replace by native QGIS c++ algo when available...
+
+    crowns.dataProvider().addAttributes([QgsField(
+        'tid', QVariant.Int)])
+    crowns.updateFields()
+    crowns.startEditing()
+    fcount = crowns.featureCount()
+    counter = 0
+    for crown in crowns.getFeatures():
+        counter += 1
+        progressBar.setValue(100 + int(counter * (600 / fcount)))
+        progressMessage.setText('Joining crown ' + str(counter)
+                                + '/' + str(fcount))
+        request = QgsFeatureRequest()
+        request.setFilterRect(crown.geometry().boundingBox())
+        dp = treetops.dataProvider()
+        for r in dp.getFeatures(request):
+            if crown.geometry().intersects(r.geometry()):
+                crowns.changeAttributeValue(crown.id(),
+                                            crown.fieldNameIndex('tid'),
+                                            r.id())
+    crowns.commitChanges()
 
     fileTxt = open(outputDir + "/log.txt", "a")
     fileTxt.write("delaunaytriangulation started\n")
     fileTxt.close()
-    runalg('qgis:delaunaytriangulation',
-           treetopsSelectedPath, treetopsTrianglesPath)
+
+    # delaunay triangulation Adapted from official Python plugin
+    # TODO: replace by native QGIS c++ algo when available...
+
+    fields = QgsFields()
+    fields.append(QgsField('POINTA', QVariant.Double, '', 24, 15))
+    fields.append(QgsField('POINTB', QVariant.Double, '', 24, 15))
+    fields.append(QgsField('POINTC', QVariant.Double, '', 24, 15))
+    crs = QgsCoordinateReferenceSystem('EPSG:2056')
+    triangleFile = QgsVectorFileWriter(treetopsTrianglesPath,
+                                       'utf-8',
+                                       fields,
+                                       QgsWkbTypes.Polygon,
+                                       crs,
+                                       'ESRI Shapefile')
+
+    pts = []
+    ptDict = {}
+    ptNdx = -1
+    c = voronoi.Context()
+    features = treetops.getFeatures()
+    total = 100.0 / treetops.featureCount() if treetops.featureCount() else 0
+    progressMessage.setText('Starting triangulation...')
+    for current, inFeat in enumerate(features):
+        geom = QgsGeometry(inFeat.geometry())
+        if geom.isNull():
+            continue
+        if geom.isMultipart():
+            points = geom.asMultiPoint()
+        else:
+            points = [geom.asPoint()]
+        for n, point in enumerate(points):
+            x = point.x()
+            y = point.y()
+            pts.append((x, y))
+            ptNdx += 1
+            ptDict[ptNdx] = (inFeat.id(), n)
+    progressMessage.setText('Triangulation step 1 ok')
+
+    if len(pts) < 3:
+        raise QgsProcessingException(
+            'Input file should contain at least 3 points. Choose '
+            'another file and try again.')
+
+    uniqueSet = set(item for item in pts)
+    ids = [pts.index(item) for item in uniqueSet]
+    sl = voronoi.SiteList([voronoi.Site(*i) for i in uniqueSet])
+    c.triangulate = True
+    voronoi.voronoi(sl, c)
+    triangles = c.triangles
+    feat = QgsFeature()
+
+    total = 100.0 / len(triangles) if triangles else 1
+    for current, triangle in enumerate(triangles):
+
+        indices = list(triangle)
+        indices.append(indices[0])
+        polygon = []
+
+        attrs = []
+        step = 0
+        for index in indices:
+            fid, n = ptDict[ids[index]]
+            request = QgsFeatureRequest().setFilterFid(fid)
+            inFeat = next(treetops.getFeatures(request))
+            geom = QgsGeometry(inFeat.geometry())
+            point = QgsPoint(geom.asPoint())
+
+            polygon.append(point)
+            if step <= 3:
+                attrs.append(ids[index])
+            step += 1
+
+        linestring = QgsLineString(polygon)
+        poly = QgsPolygonV2()
+        poly.setExteriorRing(linestring)
+        feat.setAttributes(attrs)
+        geometry = QgsGeometry().fromWkt(poly.asWkt())
+        feat.setGeometry(geometry)
+        triangleFile.addFeature(feat)
+    progressMessage.setText('Triangulation terminated')
 
     #  Remove triangles with perimeter higher than threshold
     triangles = QgsVectorLayer(treetopsTrianglesPath, 'triangles', 'ogr')
@@ -111,6 +231,7 @@ def processing(options, f):
     fileTxt = open(outputDir + "/log.txt", "a")
     fileTxt.write("treeSelector passed\n")
     fileTxt.close()
+    progressMessage.setText('Starting convexhull computing...')
 
 
 if __name__ == "__main__":

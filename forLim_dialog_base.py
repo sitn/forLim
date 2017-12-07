@@ -3,11 +3,11 @@
 # Form implementation generated from reading ui file '/Users/rufenerm/.qgis2/python/plugins/forLim/forLim_dialog_base.ui'
 #
 # Created: Wed Sep  9 11:41:40 2015
-#      by: PyQt4 UI code generator 4.11.3
+#      by: qgis.PyQt UI code generator 4.11.3
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt4 import QtCore, QtGui
+from qgis.PyQt import QtCore, QtGui
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -2203,4 +2203,3 @@ class Ui_dialog(object):
         self.label_85.setText(_translate("dialog", "Une tolérance de 1 mètre permet de réduire considérablement le volume des données produites.", None))
         self.label_91.setText(_translate("dialog", "Les grands objets ne sont pas soumis à l\'application de la convolution et au degré de recouvrement.", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("dialog", "Aide", None))
-

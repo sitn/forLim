@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import forestDetectShape
-import treeDetectTopsAndCrowns
-import treeSelector
-import convexHullComputer
-import postProcessing
-from qgis.core import QgsVectorLayer, QgsMapLayerRegistry
+from qgis.core import QgsVectorLayer
+from . import forestDetectShape
+from . import treeDetectTopsAndCrowns
+from . import treeSelector
+from . import convexHullComputer
+from . import postProcessing
 
 
 def main(self, options, current_tile):
@@ -23,28 +23,36 @@ def processing(self, options, current_tile):
     '''
 
     ###################################
-    #  0. Forest shape extraction     #
+    #  0. Forest shape extraction = Convolution method    #
     ###################################
     # Run the general forest prior shape, contour and isolated trees extraction
-    self.dlg.label_printActualProcess.setText(u'Running shape detection for' +
+    self.dlg.label_printActualProcess.setText(u'Shape detection for' +
                                               ' tile: ' + str(current_tile))
     forestDetectShape.main(options)
+    self.dlg.progressBar.setValue(50)
 
+    if options["onlyConvolution"]:
+        self.dlg.label_printActualProcess.setText(u'Calcul selon la méthode' +
+                                                  'de convolution terminé!')
+        return
     ###################################
     #  1. Treetops extraction         #
     ###################################
     # run Matthew Parkan's treeDetectLmax modified version
-    self.dlg.label_printActualProcess.setText(u'Running tree detection for' +
+    self.dlg.label_printActualProcess.setText(u'Tree detection for' +
                                               ' tile: ' + str(current_tile))
     treeDetectTopsAndCrowns.main(options)
+    self.dlg.progressBar.setValue(100)
 
     ###################################
     #  3. Trees selection             #
     ###################################
     # Select the trees from forest contour and isolated trees
-    self.dlg.label_printActualProcess.setText(u'Running tree selection for' +
+    self.dlg.label_printActualProcess.setText(u'Tree selection for' +
                                               ' tile: ' + str(current_tile))
-    treeSelector.main(options)
+    treeSelector.main(options, self.dlg.progressBar,
+                      self.dlg.label_printActualProcess)
+    self.dlg.progressBar.setValue(800)
 
     ###################################
     #  4. Convex hulls computation    #
@@ -53,6 +61,7 @@ def processing(self, options, current_tile):
     self.dlg.label_printActualProcess.setText(u'Calculating convex hulls for' +
                                               ' tile: ' + str(current_tile))
     convexHullComputer.main(options)
+    self.dlg.progressBar.setValue(1000)
 
     ###################################
     #  5. Dissolve and Clip results    #
@@ -60,7 +69,6 @@ def processing(self, options, current_tile):
     self.dlg.label_printActualProcess.setText(u'Postprocessing for' +
                                               ' tile: ' + str(current_tile))
     postProcessing.main(options)
-
 
 
 if __name__ == "__main__":

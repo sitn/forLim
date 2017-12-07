@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/plugins/forLim" >
+    <qresource prefix="/plugins/selvansgeo" >
         <file>icon.png</file>
     </qresource>
 </RCC>

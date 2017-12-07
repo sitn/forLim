@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>901</width>
-    <height>590</height>
+    <width>516</width>
+    <height>734</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -42,7 +42,7 @@
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
-       <string>Menu Principal</string>
+       <string>Calcul des surfaces</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
@@ -64,7 +64,7 @@
             <x>0</x>
             <y>10</y>
             <width>471</width>
-            <height>81</height>
+            <height>101</height>
            </rect>
           </property>
           <property name="font">
@@ -150,7 +150,7 @@
             <string/>
            </property>
            <property name="text">
-            <string>C:/tmp/MNC/2016/micro.tif</string>
+            <string>C:/tmp/mnc/mini.tif</string>
            </property>
           </widget>
           <widget class="QLabel" name="label_2">
@@ -193,662 +193,11 @@
            </property>
           </widget>
          </widget>
-         <widget class="QWidget" name="widget_2" native="true">
-          <property name="geometry">
-           <rect>
-            <x>500</x>
-            <y>0</y>
-            <width>331</width>
-            <height>511</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>8</pointsize>
-           </font>
-          </property>
-          <widget class="QWidget" name="widget_5" native="true">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>270</y>
-             <width>331</width>
-             <height>241</height>
-            </rect>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>8</pointsize>
-            </font>
-           </property>
-           <widget class="QLabel" name="label_4">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>100</y>
-              <width>161</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="whatsThis">
-             <string/>
-            </property>
-            <property name="text">
-             <string>Hauteur d'arbre maximum</string>
-            </property>
-           </widget>
-           <widget class="QLabel" name="label_10">
-            <property name="geometry">
-             <rect>
-              <x>310</x>
-              <y>100</y>
-              <width>21</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>m</string>
-            </property>
-           </widget>
-           <widget class="QLineEdit" name="LE_maxHeightThres">
-            <property name="geometry">
-             <rect>
-              <x>250</x>
-              <y>100</y>
-              <width>51</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>50</string>
-            </property>
-            <property name="maxLength">
-             <number>2</number>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-           <widget class="QLabel" name="label_3">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>70</y>
-              <width>161</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="whatsThis">
-             <string/>
-            </property>
-            <property name="text">
-             <string>Hauteur d'arbre minimum</string>
-            </property>
-           </widget>
-           <widget class="QLabel" name="label_24">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>10</y>
-              <width>321</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="text">
-             <string>Paramètres du programme</string>
-            </property>
-           </widget>
-           <widget class="QLineEdit" name="LE_minHeightThres">
-            <property name="geometry">
-             <rect>
-              <x>250</x>
-              <y>70</y>
-              <width>51</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>2</string>
-            </property>
-            <property name="maxLength">
-             <number>2</number>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-           <widget class="QLabel" name="label_23">
-            <property name="geometry">
-             <rect>
-              <x>310</x>
-              <y>70</y>
-              <width>21</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>m</string>
-            </property>
-           </widget>
-           <widget class="QLabel" name="label_28">
-            <property name="geometry">
-             <rect>
-              <x>310</x>
-              <y>40</y>
-              <width>21</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>m</string>
-            </property>
-           </widget>
-           <widget class="QLineEdit" name="LE_gradConvDiameter">
-            <property name="geometry">
-             <rect>
-              <x>250</x>
-              <y>40</y>
-              <width>51</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>4</string>
-            </property>
-            <property name="maxLength">
-             <number>1</number>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-           <widget class="QLabel" name="label_29">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>40</y>
-              <width>211</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="whatsThis">
-             <string/>
-            </property>
-            <property name="text">
-             <string>Diamètre fenêtre lissage hauteur</string>
-            </property>
-           </widget>
-           <widget class="QLineEdit" name="txt_triangle_peri">
-            <property name="geometry">
-             <rect>
-              <x>250</x>
-              <y>130</y>
-              <width>51</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>100</string>
-            </property>
-            <property name="maxLength">
-             <number>4</number>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-           <widget class="QLabel" name="label_5">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>130</y>
-              <width>161</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="whatsThis">
-             <string/>
-            </property>
-            <property name="text">
-             <string>Périmètre max des triangles</string>
-            </property>
-           </widget>
-           <widget class="QLabel" name="label_11">
-            <property name="geometry">
-             <rect>
-              <x>310</x>
-              <y>130</y>
-              <width>21</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>m</string>
-            </property>
-           </widget>
-          </widget>
-          <widget class="QWidget" name="widget_6" native="true">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>140</y>
-             <width>331</width>
-             <height>121</height>
-            </rect>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>8</pointsize>
-            </font>
-           </property>
-           <widget class="QLabel" name="label_8">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>100</y>
-              <width>191</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="whatsThis">
-             <string/>
-            </property>
-            <property name="text">
-             <string>Surface minimale de la clairière</string>
-            </property>
-           </widget>
-           <widget class="QLabel" name="label_13">
-            <property name="geometry">
-             <rect>
-              <x>310</x>
-              <y>40</y>
-              <width>21</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>m</string>
-            </property>
-           </widget>
-           <widget class="QLabel" name="label_7">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>70</y>
-              <width>191</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="whatsThis">
-             <string/>
-            </property>
-            <property name="text">
-             <string>Surface minimale de la forêt</string>
-            </property>
-           </widget>
-           <widget class="QLabel" name="label_15">
-            <property name="geometry">
-             <rect>
-              <x>310</x>
-              <y>100</y>
-              <width>21</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>m2</string>
-            </property>
-           </widget>
-           <widget class="QLabel" name="label_25">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>10</y>
-              <width>321</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="text">
-             <string>Paramètres juridiques</string>
-            </property>
-           </widget>
-           <widget class="QLineEdit" name="LE_minClearingSurfThres">
-            <property name="geometry">
-             <rect>
-              <x>250</x>
-              <y>100</y>
-              <width>51</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>2500</string>
-            </property>
-            <property name="maxLength">
-             <number>4</number>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-           <widget class="QLabel" name="label_14">
-            <property name="geometry">
-             <rect>
-              <x>310</x>
-              <y>70</y>
-              <width>21</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>m2</string>
-            </property>
-           </widget>
-           <widget class="QLabel" name="label_6">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>40</y>
-              <width>191</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="whatsThis">
-             <string/>
-            </property>
-            <property name="text">
-             <string>Largeur minimale de la forêt</string>
-            </property>
-           </widget>
-           <widget class="QLineEdit" name="LE_minForSurfThres">
-            <property name="geometry">
-             <rect>
-              <x>250</x>
-              <y>70</y>
-              <width>51</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>800</string>
-            </property>
-            <property name="maxLength">
-             <number>4</number>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-           <widget class="QLineEdit" name="LE_minWidthThres">
-            <property name="geometry">
-             <rect>
-              <x>250</x>
-              <y>40</y>
-              <width>51</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>12</string>
-            </property>
-            <property name="maxLength">
-             <number>2</number>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </widget>
-          <widget class="QWidget" name="widget_7" native="true">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>30</y>
-             <width>321</width>
-             <height>101</height>
-            </rect>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>8</pointsize>
-            </font>
-           </property>
-           <widget class="QLabel" name="label_16">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>40</y>
-              <width>231</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="whatsThis">
-             <string/>
-            </property>
-            <property name="text">
-             <string>Degré de recouvrement Forêt Dense</string>
-            </property>
-           </widget>
-           <widget class="QLabel" name="label_26">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>10</y>
-              <width>321</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="text">
-             <string>Paramètres sensibles de définition de la forêt</string>
-            </property>
-           </widget>
-           <widget class="QLineEdit" name="LE_DRFD">
-            <property name="geometry">
-             <rect>
-              <x>250</x>
-              <y>40</y>
-              <width>51</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>0.9</string>
-            </property>
-            <property name="maxLength">
-             <number>4</number>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-           <widget class="QLabel" name="label_92">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>70</y>
-              <width>241</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="whatsThis">
-             <string/>
-            </property>
-            <property name="text">
-             <string>Degré de recouvrement Forêt Clairsemée</string>
-            </property>
-           </widget>
-           <widget class="QLineEdit" name="LE_DRPB">
-            <property name="geometry">
-             <rect>
-              <x>250</x>
-              <y>70</y>
-              <width>51</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>0.3</string>
-            </property>
-            <property name="maxLength">
-             <number>4</number>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </widget>
-         </widget>
          <widget class="QWidget" name="widget_3" native="true">
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>370</y>
+            <y>560</y>
             <width>461</width>
             <height>111</height>
            </rect>
@@ -862,7 +211,7 @@
            <property name="geometry">
             <rect>
              <x>380</x>
-             <y>70</y>
+             <y>50</y>
              <width>71</width>
              <height>32</height>
             </rect>
@@ -880,7 +229,7 @@
            <property name="geometry">
             <rect>
              <x>1</x>
-             <y>70</y>
+             <y>50</y>
              <width>291</width>
              <height>31</height>
             </rect>
@@ -898,7 +247,7 @@
            <property name="geometry">
             <rect>
              <x>311</x>
-             <y>70</y>
+             <y>50</y>
              <width>71</width>
              <height>32</height>
             </rect>
@@ -915,9 +264,9 @@
           <widget class="QLabel" name="label_printActualProcess">
            <property name="geometry">
             <rect>
-             <x>80</x>
-             <y>50</y>
-             <width>211</width>
+             <x>100</x>
+             <y>10</y>
+             <width>351</width>
              <height>21</height>
             </rect>
            </property>
@@ -930,11 +279,33 @@
             <string/>
            </property>
           </widget>
+          <widget class="QLabel" name="label_57">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>90</y>
+             <width>201</width>
+             <height>16</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>forlim 01.12.2017 for QGIS 3+</string>
+           </property>
+           <property name="textFormat">
+            <enum>Qt::RichText</enum>
+           </property>
+          </widget>
           <widget class="QLabel" name="label_17">
            <property name="geometry">
             <rect>
-             <x>0</x>
-             <y>50</y>
+             <x>10</x>
+             <y>10</y>
              <width>81</width>
              <height>21</height>
             </rect>
@@ -948,12 +319,27 @@
             <string>Progression:</string>
            </property>
           </widget>
-          <widget class="QCheckBox" name="CB_addLayer">
+         </widget>
+         <widget class="QWidget" name="widget_6" native="true">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>150</y>
+            <width>451</width>
+            <height>121</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>8</pointsize>
+           </font>
+          </property>
+          <widget class="QLabel" name="label_8">
            <property name="geometry">
             <rect>
-             <x>0</x>
-             <y>10</y>
-             <width>211</width>
+             <x>10</x>
+             <y>100</y>
+             <width>191</width>
              <height>21</height>
             </rect>
            </property>
@@ -966,20 +352,214 @@
             <string/>
            </property>
            <property name="text">
-            <string>Ajouter le résultat au canevas</string>
+            <string>Surface minimale de la clairière</string>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_13">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="geometry">
+            <rect>
+             <x>400</x>
+             <y>40</y>
+             <width>21</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>m</string>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_7">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>70</y>
+             <width>191</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
+           <property name="whatsThis">
+            <string/>
+           </property>
+           <property name="text">
+            <string>Surface minimale de la forêt</string>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_15">
+           <property name="geometry">
+            <rect>
+             <x>400</x>
+             <y>100</y>
+             <width>21</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>m2</string>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_25">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>10</y>
+             <width>321</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Paramètres juridiques</string>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="LE_minClearingSurfThres">
+           <property name="geometry">
+            <rect>
+             <x>340</x>
+             <y>100</y>
+             <width>51</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>2500</string>
+           </property>
+           <property name="maxLength">
+            <number>4</number>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_14">
+           <property name="geometry">
+            <rect>
+             <x>400</x>
+             <y>70</y>
+             <width>21</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>m2</string>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_6">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>40</y>
+             <width>241</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
+           <property name="whatsThis">
+            <string/>
+           </property>
+           <property name="text">
+            <string>Largeur minimale de la forêt (pas implémenté)</string>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="LE_minForSurfThres">
+           <property name="geometry">
+            <rect>
+             <x>340</x>
+             <y>70</y>
+             <width>51</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>800</string>
+           </property>
+           <property name="maxLength">
+            <number>4</number>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="LE_minWidthThres">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="geometry">
+            <rect>
+             <x>340</x>
+             <y>40</y>
+             <width>51</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>12</string>
+           </property>
+           <property name="maxLength">
+            <number>2</number>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
            </property>
           </widget>
          </widget>
-         <widget class="QWidget" name="widget_4" native="true">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
+         <widget class="QWidget" name="widget_5" native="true">
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>130</y>
-            <width>461</width>
-            <height>221</height>
+            <y>280</y>
+            <width>451</width>
+            <height>161</height>
            </rect>
           </property>
           <property name="font">
@@ -987,11 +567,11 @@
             <pointsize>8</pointsize>
            </font>
           </property>
-          <widget class="QCheckBox" name="CB_removePolygons">
+          <widget class="QLabel" name="label_4">
            <property name="geometry">
             <rect>
-             <x>0</x>
-             <y>180</y>
+             <x>10</x>
+             <y>100</y>
              <width>161</width>
              <height>21</height>
             </rect>
@@ -1005,15 +585,57 @@
             <string/>
            </property>
            <property name="text">
-            <string>Retirer des polygones</string>
+            <string>Hauteur d'arbre maximum</string>
            </property>
           </widget>
-          <widget class="QCheckBox" name="CB_removePolylines">
+          <widget class="QLabel" name="label_10">
            <property name="geometry">
             <rect>
-             <x>0</x>
-             <y>90</y>
-             <width>201</width>
+             <x>400</x>
+             <y>100</y>
+             <width>21</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>m</string>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="LE_maxHeightThres">
+           <property name="geometry">
+            <rect>
+             <x>340</x>
+             <y>100</y>
+             <width>51</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>50</string>
+           </property>
+           <property name="maxLength">
+            <number>2</number>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_3">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>70</y>
+             <width>161</width>
              <height>21</height>
             </rect>
            </property>
@@ -1026,16 +648,36 @@
             <string/>
            </property>
            <property name="text">
-            <string>Retirer des polylignes</string>
+            <string>Hauteur d'arbre minimum</string>
            </property>
           </widget>
-          <widget class="QWidget" name="widget_polygons" native="true">
+          <widget class="QLabel" name="label_24">
            <property name="geometry">
             <rect>
-             <x>140</x>
-             <y>170</y>
+             <x>10</x>
+             <y>10</y>
              <width>321</width>
-             <height>41</height>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Paramètres du programme</string>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="LE_minHeightThres">
+           <property name="geometry">
+            <rect>
+             <x>340</x>
+             <y>70</y>
+             <width>51</width>
+             <height>21</height>
             </rect>
            </property>
            <property name="font">
@@ -1043,47 +685,23 @@
              <pointsize>8</pointsize>
             </font>
            </property>
-           <widget class="QPushButton" name="PB_polygons">
-            <property name="geometry">
-             <rect>
-              <x>280</x>
-              <y>10</y>
-              <width>31</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>...</string>
-            </property>
-           </widget>
-           <widget class="QLineEdit" name="LE_polygons">
-            <property name="geometry">
-             <rect>
-              <x>12</x>
-              <y>10</y>
-              <width>271</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-           </widget>
+           <property name="text">
+            <string>2</string>
+           </property>
+           <property name="maxLength">
+            <number>2</number>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
           </widget>
-          <widget class="QWidget" name="widget_polylines" native="true">
+          <widget class="QLabel" name="label_23">
            <property name="geometry">
             <rect>
-             <x>140</x>
-             <y>80</y>
-             <width>321</width>
-             <height>71</height>
+             <x>400</x>
+             <y>70</y>
+             <width>21</width>
+             <height>21</height>
             </rect>
            </property>
            <property name="font">
@@ -1091,79 +709,58 @@
              <pointsize>8</pointsize>
             </font>
            </property>
-           <widget class="QLineEdit" name="LE_polylines">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>10</y>
-              <width>271</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-           </widget>
-           <widget class="QPushButton" name="PB_polylines">
-            <property name="geometry">
-             <rect>
-              <x>280</x>
-              <y>10</y>
-              <width>31</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>...</string>
-            </property>
-           </widget>
-           <widget class="QComboBox" name="CBox_polylinesBuffer">
-            <property name="geometry">
-             <rect>
-              <x>150</x>
-              <y>40</y>
-              <width>161</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-           </widget>
-           <widget class="QLabel" name="label_19">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>40</y>
-              <width>141</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Attribut distance buffer</string>
-            </property>
-           </widget>
+           <property name="text">
+            <string>m</string>
+           </property>
           </widget>
-          <widget class="QCheckBox" name="CB_removeHedges">
+          <widget class="QLabel" name="label_28">
            <property name="geometry">
             <rect>
-             <x>0</x>
-             <y>0</y>
-             <width>141</width>
+             <x>400</x>
+             <y>40</y>
+             <width>21</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>m</string>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="LE_gradConvDiameter">
+           <property name="geometry">
+            <rect>
+             <x>340</x>
+             <y>40</y>
+             <width>51</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>4</string>
+           </property>
+           <property name="maxLength">
+            <number>1</number>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_29">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>40</y>
+             <width>211</width>
              <height>21</height>
             </rect>
            </property>
@@ -1176,16 +773,19 @@
             <string/>
            </property>
            <property name="text">
-            <string>Retirer des haies</string>
+            <string>Diamètre fenêtre lissage hauteur</string>
            </property>
           </widget>
-          <widget class="QWidget" name="widget_hedges" native="true">
+          <widget class="QLineEdit" name="txt_triangle_peri">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
            <property name="geometry">
             <rect>
-             <x>140</x>
-             <y>-10</y>
-             <width>321</width>
-             <height>71</height>
+             <x>340</x>
+             <y>130</y>
+             <width>51</width>
+             <height>21</height>
             </rect>
            </property>
            <property name="font">
@@ -1193,158 +793,242 @@
              <pointsize>8</pointsize>
             </font>
            </property>
-           <widget class="QLineEdit" name="LE_hedges">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>10</y>
-              <width>271</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-           </widget>
-           <widget class="QPushButton" name="PB_hedges">
-            <property name="geometry">
-             <rect>
-              <x>280</x>
-              <y>10</y>
-              <width>31</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>...</string>
-            </property>
-           </widget>
-           <widget class="QComboBox" name="CBox_hedgesBuffer">
-            <property name="geometry">
-             <rect>
-              <x>150</x>
-              <y>40</y>
-              <width>161</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-           </widget>
-           <widget class="QLabel" name="label_18">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>41</y>
-              <width>141</width>
-              <height>21</height>
-             </rect>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Attribut distance buffer</string>
-            </property>
-           </widget>
+           <property name="text">
+            <string>100</string>
+           </property>
+           <property name="maxLength">
+            <number>4</number>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_5">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>130</y>
+             <width>211</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
+           <property name="whatsThis">
+            <string/>
+           </property>
+           <property name="text">
+            <string>Périmètre max des triangles (delaunay)</string>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_11">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="geometry">
+            <rect>
+             <x>400</x>
+             <y>130</y>
+             <width>21</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>m</string>
+           </property>
           </widget>
          </widget>
-         <widget class="Line" name="line">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>90</y>
-            <width>481</width>
-            <height>21</height>
-           </rect>
+         <widget class="QWidget" name="widget_7" native="true">
+          <property name="enabled">
+           <bool>true</bool>
           </property>
-          <property name="font">
-           <font>
-            <pointsize>8</pointsize>
-           </font>
-          </property>
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-         </widget>
-         <widget class="Line" name="line_2">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>350</y>
-            <width>481</width>
-            <height>21</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>8</pointsize>
-           </font>
-          </property>
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-         </widget>
-         <widget class="Line" name="line_3">
-          <property name="geometry">
-           <rect>
-            <x>460</x>
-            <y>0</y>
-            <width>41</width>
-            <height>511</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>8</pointsize>
-           </font>
-          </property>
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_57">
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>500</y>
-            <width>201</width>
-            <height>16</height>
+            <y>450</y>
+            <width>461</width>
+            <height>101</height>
            </rect>
           </property>
           <property name="font">
            <font>
-            <weight>75</weight>
-            <bold>true</bold>
+            <pointsize>8</pointsize>
            </font>
           </property>
-          <property name="text">
-           <string>forlim 11.08.2017 for QGIS 2.18+</string>
+          <widget class="QLabel" name="label_16">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>40</y>
+             <width>231</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
+           <property name="whatsThis">
+            <string/>
+           </property>
+           <property name="text">
+            <string>Degré de recouvrement Forêt Dense</string>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_26">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>10</y>
+             <width>391</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Paramètres sensibles de définition de la forêt (delaunay)</string>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="LE_DRFD">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="geometry">
+            <rect>
+             <x>340</x>
+             <y>40</y>
+             <width>51</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>0.9</string>
+           </property>
+           <property name="maxLength">
+            <number>4</number>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_92">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>70</y>
+             <width>241</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
+           <property name="whatsThis">
+            <string/>
+           </property>
+           <property name="text">
+            <string>Degré de recouvrement Forêt Clairsemée</string>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="LE_DRPB">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="geometry">
+            <rect>
+             <x>340</x>
+             <y>70</y>
+             <width>51</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>0.3</string>
+           </property>
+           <property name="maxLength">
+            <number>4</number>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </widget>
+         <widget class="QCheckBox" name="chkConvolution">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>120</y>
+            <width>191</width>
+            <height>17</height>
+           </rect>
           </property>
-          <property name="textFormat">
-           <enum>Qt::RichText</enum>
+          <property name="text">
+           <string>Calcul de convolution uniquement</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+         <widget class="QCheckBox" name="CB_addLayer">
+          <property name="geometry">
+           <rect>
+            <x>220</x>
+            <y>120</y>
+            <width>211</width>
+            <height>21</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>8</pointsize>
+           </font>
+          </property>
+          <property name="whatsThis">
+           <string/>
+          </property>
+          <property name="text">
+           <string>Ajouter le résultat au canevas</string>
           </property>
          </widget>
         </widget>
        </item>
       </layout>
-     </widget>
-     <widget class="QWidget" name="tab_2">
-      <attribute name="title">
-       <string>Aide</string>
-      </attribute>
      </widget>
     </widget>
    </item>

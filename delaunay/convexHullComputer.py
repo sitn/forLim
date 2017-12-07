@@ -4,11 +4,11 @@ import os
 from os.path import basename
 from osgeo import ogr
 from osgeo import osr
-from qgis.core import QgsVectorLayer, QgsMapLayerRegistry
+from qgis.core import QgsVectorLayer, QgsProject
 
 # Import custom modules
-import spatialIO as spio
-from folderManager import initialize
+from .spatialIO import pathChecker
+from .folderManager import initialize
 
 
 def main(options):
@@ -47,29 +47,25 @@ def processing(options, f):
     driver = ogr.GetDriverByName('ESRI Shapefile')
 
     # Loads treetops selection
-    treetopsPath = options['dst'] + 'shp/' + f + '_treetops_selected.shp'
+    treetopsPath = options['dst'] + 'shp/' + f + '_treetops.shp'
     ds_treetops = driver.Open(treetopsPath, 0)
     treetops = ds_treetops.GetLayer()
 
     # Loads crowns selection
-    crownsPath = options['dst'] + 'shp/' + f + '_crowns_selected.shp'
-    # ds_crowns = driver.Open(crownsPath, 0)
-    # crowns = ds_crowns.GetLayer()
+    crownsPath = options['dst'] + 'shp/' + f + '_crowns.shp'
     crowns = QgsVectorLayer(crownsPath, "Crows", "ogr")
 
     # Loads treetops triangulation
     trianglesPath = options['dst'] + 'shp/' + f + '_treetops_triangles.shp'
-    # ds_triangles = driver.Open(trianglesPath, 0)
-    # triangles = ds_triangles.GetLayer()
     triangles = QgsVectorLayer(trianglesPath, "triangles", "ogr")
 
     #  Create the new layers to store forest and wooden pasture convex hulls
     CHsForestPath = options['dst'] + 'shp/' + f + '_convexHulls_forest.shp'
-    spio.pathChecker(CHsForestPath)
+    pathChecker(CHsForestPath)
 
     CHsWoodenPasturePath = options['dst'] + 'shp/' + f + \
         '_convexHulls_wooden_pasture.shp'
-    spio.pathChecker(CHsWoodenPasturePath)
+    pathChecker(CHsWoodenPasturePath)
 
     # Create the convex hulls forest data source
     ds_CHsForest = driver.CreateDataSource(CHsForestPath)
@@ -95,7 +91,7 @@ def processing(options, f):
 
     # Compute the convex hull for each crown that composes a triangle
 
-    crown_N = crowns.getValues("N_1", False)[0]
+    crown_N = crowns.getValues("N", False)[0]
     del crowns
     forestRatio = options['forestRatio']
     WoodenPastureRatio = options['woodenPastureRatio']
@@ -105,13 +101,13 @@ def processing(options, f):
     for tri in triangles.getFeatures():
 
         # Get the corresponding treetop
-        alpha = treetops.GetFeature(tri['POINTA'])
-        beta = treetops.GetFeature(tri['POINTB'])
-        gamma = treetops.GetFeature(tri['POINTC'])
-
+        alpha = treetops.GetFeature(int(tri['POINTA']))
+        beta = treetops.GetFeature(int(tri['POINTB']))
+        gamma = treetops.GetFeature(int(tri['POINTC']))
         # Get the corresponding crown
         geom_collection = ogr.Geometry(ogr.wkbGeometryCollection)
         crown_count = 0
+
         if alpha.GetField("N") in crown_N:
             crown_alpha = crowns.GetFeature(crown_N.index(alpha.GetField('N')))
             geom_collection.AddGeometry(crown_alpha.geometry())
@@ -156,6 +152,17 @@ def processing(options, f):
     fileTxt = open(outputDir + "/log.txt", "a")
     fileTxt.write("convexHull passed\n")
     fileTxt.close()
+
+    forest = QgsVectorLayer(CHsForestPath, "Pastures CH", "ogr")
+    crowns = QgsVectorLayer(crownsPath, "Crowns", "ogr")
+    treetops = QgsVectorLayer(treetopsPath, "Forest CH", "ogr")
+    triangles = QgsVectorLayer(trianglesPath, "Forest CH", "ogr")
+    wooden_p = QgsVectorLayer(CHsWoodenPasturePath, "Forest CH", "ogr")
+    QgsProject.instance().addMapLayer(crowns)
+    QgsProject.instance().addMapLayer(treetops)
+    QgsProject.instance().addMapLayer(triangles)
+    QgsProject.instance().addMapLayer(forest)
+    QgsProject.instance().addMapLayer(wooden_p)
 
 
 if __name__ == "__main__":
