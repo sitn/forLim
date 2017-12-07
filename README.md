@@ -8,7 +8,7 @@
 ## Installation
 
 1. Clone this repository on your machine
-2. Link the new directory with the QGIS plugin directory or copy everything in the plugin repository
+2. Link the new directory with the QGIS plugin directory or copy everything in the plugin directory
 
 ## Features
 
@@ -19,7 +19,9 @@ The parameters for this delimitation are set by default to respect the swiss fed
 At this stage, only the first step, that is the delimitation of the forest zones using the convolution method is fully operational on large datasets.
 the other steps of the Delaunay method to filter the forest zones' borders might crash due on memory issue with large datasets
 
+Postprocessing will be required in most cases, depending of the canopy model. For instance, buildings, electric cables, ... need to be removed
+
 ## Todos
 
-Remove python loops doing processing algorithms that will soon have a native implementation within QGIS 3
+Remove python loops doing processing algorithms that will soon have a native implementation within QGIS 3. Only steps fro Delaunay methods completion are concerned
 
