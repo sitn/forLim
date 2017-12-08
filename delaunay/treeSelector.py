@@ -8,7 +8,7 @@ from qgis.core import QgsFeedback, QgsField, QgsFeatureRequest
 from qgis.core import QgsVectorFileWriter, QgsCoordinateReferenceSystem
 from qgis.core import QgsFields, QgsWkbTypes, QgsGeometry
 from qgis.core import QgsProcessingException, QgsFeature, QgsPoint
-from qgis.core import QgsLineString, QgsPolygonV2
+from qgis.core import QgsLineString, QgsPolygon
 from qgis.PyQt.QtCore import QVariant
 import processing as qgsproc
 from qgis.core import QgsProcessingFeatureSourceDefinition
@@ -212,7 +212,7 @@ def processing(options, f, progressBar, progressMessage):
             step += 1
 
         linestring = QgsLineString(polygon)
-        poly = QgsPolygonV2()
+        poly = QgsPolygon()
         poly.setExteriorRing(linestring)
         feat.setAttributes(attrs)
         geometry = QgsGeometry().fromWkt(poly.asWkt())
