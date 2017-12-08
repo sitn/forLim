@@ -9,6 +9,7 @@
 
 1. Clone this repository on your machine
 2. Link the new directory with the QGIS plugin directory or copy everything in the plugin directory
+3. Hint or Windows users to link the plugin directory located in "c:\projects\forlim" (cmd in admin mode) : ```mklink /d "c:\OSGeo4W\apps\qgis\python\plugins"\forlim c:\projects\forlim```
 
 ## Features
 
@@ -24,4 +25,3 @@ Postprocessing will be required in most cases, depending of the canopy model. Fo
 ## Todos
 
 Remove python loops doing processing algorithms that will soon have a native implementation within QGIS 3. Only steps fro Delaunay methods completion are concerned
-
